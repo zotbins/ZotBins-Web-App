@@ -1,0 +1,56 @@
+
+{% extends "MainTemplate.html" %}
+
+{% block includes %}
+<link rel="stylesheet" type="text/css" href="static/stylesheets/FindClosestBin.css" />
+<script src="static/scripts/FindClosestBin.js"></script>
+<link href = "static/js/leaflet.css" rel="stylesheet">
+<script src="static/js/leaflet.js"></script>
+<script src="static/scripts/LeafletMaps.js"></script>
+{% endblock %}
+
+{% block script %}
+$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+var bins = {{bins|tojson}}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+	<div class="col-xl-3">
+		<h1 id="title">Find the Closest Bin</h1>
+		<!-- <form action = "ClosestBin" method = "POST" id="closest_bin_form"> -->
+			
+			<!-- <label> Select a room/area </label> -->
+			<!-- <select name="room" class="chosen-select" id="autocomplete" data-placeholder="Select a room..."> -->
+				<!-- <option value=""></option> -->
+				<!-- {% for room in rooms: %} -->
+					<!-- <option value="{{room}}">{{room}}</option> -->
+				<!-- {% endfor %}	 -->
+			<!-- </select> -->
+
+			
+			<label>Select a bin type</label>
+			<div id="select_bin_type">
+				<label><input type="radio" name="type" value="L"><img src="static/landfill.jpg" alt="landfill"></label>
+				<label><input type="radio" name="type" value="R" checked="checked"><img src="static/recycling.jpg" alt="recycling"></label>
+				<label><input type="radio" name="type" value="C"><img src="static/compost.jpg" alt="compost"></label>
+			</div>
+			
+			<button id="submit" class="btn btn-primary">Find a Bin</button> 
+			
+			<!-- <p style="color: red">* waste guide algorithm coming soon! *</p> -->
+		<!-- </form> -->
+	</div>
+	<div class="col-xl-9 map-container">
+		<div id="select_floor">
+			<select name="room" class="chosen-select" id="autocomplete">
+				{% for i in range(1, 7): %}
+					<option value="{{i}}">Floor {{i}}</option>
+				{% endfor %}
+			</select>
+		</div>
+		<div id = "map" style = "background : #888888;">
+		</div>
+	</div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+
+{% extends "MainTemplate.html" %}
+
+{% block includes %}
+
+<link href = "static/js/leaflet.css" rel="stylesheet">
+<script src="static/js/leaflet.js"></script>
+{% endblock %}
+
+{% block content %}
+	<div class = "row">
+	</div>
+	
+	<div class = "row">
+	</div>
+	<div class="col-lg-4 col-md-4 col-md-4 col-xs-4">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <i class="fa fa-th-list fa-fw"></i>
+							Select  Location
+							<div class="btns">
+									<button type="reset" class="btn btn-default formbtn" id="reset">Reset</button>
+									<button type="dislay_stats" class="btn btn-default formbtn" id="display_stats">Display Stats</button>
+						
+							</div>
+                        </div>
+                        <!-- /.panel-heading -->
+                       <div class="panel-body">
+							<form role="form" id="location-form">
+								<!-- Nav tabs -->
+								<div class="row" id="floor-pills">
+									<ul class="nav nav-pills nav-stacked col-lg-3 col-md-3 col-md-3 " id="navpills">
+										<li class=""><a href="#building-pills" data-toggle="tab">Building</a>
+											
+										</li>
+										
+										<li class =""><a href="#floors-pills" data-toggle="tab">Floors</a>
+										</li>
+										
+										
+									</ul>
+									
+
+									<!-- Tab panes -->
+									<div class="tab-content col-lg-9 col-md-9 col-md-9 ">
+										<div class="select-pills tab-pane fade" id="building-pills">
+											<label class="checkbox">
+												<input type="checkbox" value="DBH" class="check" checked="">
+												<span>Donald Bren Hall</span>
+											</label>
+										</div>
+										<div class="select-pills tab-pane fade active in" id="floors-pills">
+											<label class="checkbox">
+												<input type="checkbox" value="1st floor" class="check">
+												<span>1st Floor</span>
+											</label>
+											<label class="checkbox">
+												<input type="checkbox" value="2nd floor" class="check">
+												<span>2nd Floor</span>
+											</label>
+											<label class="checkbox">
+												<input type="checkbox" value="3rd floor" class="check">
+												<span>3rd Floor</span>
+											</label>
+											<label class="checkbox">
+												<input type="checkbox" value="4th floor" class="check">
+												<span>4th Floor</span>
+											</label>
+											<label class="checkbox">
+												<input type="checkbox" value="5th floor" class="check">
+												<span>5th Floor</span>
+											</label>
+											<label class="checkbox">
+												<input type="checkbox" value="6th floor" class="check">
+												<span>6th Floor</span>
+											</label>
+											
+										</div>
+										<div class="select-pills tab-pane fade" id="regions-pills">
+											
+										
+									</div>
+										<!-- Tab panes -->
+								</div>
+								
+								
+							</form>
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                </div>
+	
+{% endblock %}
+
+{% block title %}
+
+{% endblock %}
+ 

@@ -1,0 +1,103 @@
+
+{% extends "MainTemplate.html" %}
+
+
+{% block includes %}
+<script src="static/scripts/index.js"></script>
+<link rel="stylesheet" type="text/css" href="static/stylesheets/index.css" />
+{% endblock %}
+
+
+{% block script %}
+$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+<!-- sessionStorage.setItem("email", "caoj11@uci.edu"); -->
+<!-- sessionStorage.setItem("name", "Josh"); -->
+<!-- sessionStorage.setItem("tippershost", "http://sensoria.ics.uci.edu:8059"); -->
+
+
+{% endblock %}
+
+
+{% block content %}
+<!-- <div class="row header"> -->
+	<!-- <div class="container"> -->
+		<!-- <div class="jumbotron" id="header"> -->
+		<!-- </div> -->
+	<!-- </div> -->
+<!-- </div> -->
+
+<script>
+<!-- $(document).ready(function(){ -->
+	console.log(sessionStorage);
+	var email = sessionStorage.getItem("email");
+	var tippershost = sessionStorage.getItem("tippershost");
+
+	if(email !== null && tippershost !== null){
+			$.ajax({
+				url: $SCRIPT_ROOT + "/set_session",
+				type: "POST",
+				data: JSON.stringify({"email": email, 
+										"tippershost": tippershost}),
+				contentType:"application/json; charset=utf-8",
+				dataType:"json",
+				success: function(data){
+					// $("#header").prepend("<h1 id='welcome'>Welcome, " + data["email"] + "</h1>");
+					$("#navbar-name").prepend(data["email"])
+				}
+			});
+		}
+	else{
+		window.location.replace("/Tportal");
+	}
+<!-- }); -->
+</script>
+
+<div class="text-center img-div">
+	<img src="static/logo.png" alt="ZotBins logo">
+</div>
+<div class="row nav-row">
+	<div class ="col-xl-3 col-sm-6 mb-3">
+		<div class="card">
+			<a href="FindClosestBin">
+				<div class="card-body">
+					<div class="col-xs-3">
+						<i class="fas fa-search fa-10x"></i>
+					</div>
+				</div>
+				<div class ="card-footer">
+					<h4 class="card-title">Waste Guide</h4>
+				</div>
+			</a>
+		</div>
+	</div>
+	<div class ="col-xl-3 col-sm-6 mb-3">
+		<div class="card">
+			<a href="Bins">
+				<div class="card-body">
+					<div class="col-xs-3">
+						<i class="fas fa-trash fa-10x"></i>
+					</div>
+				</div>
+				<div class ="card-footer">
+					<h4 class="card-title">Bins</h4>
+				</div>
+			</a>
+		</div>
+	</div>
+	<div class ="col-xl-3 col-sm-6 mb-3">
+		<div class="card">
+			<a href="BuildingStats">
+				<div class="card-body">
+					<div class="col-xs-3">
+						<i class="fas fa-building fa-10x"></i>
+					</div>
+				</div>
+				<div class ="card-footer">
+					<h4 class="card-title">Building Stats</h4>
+				</div>
+			</a>
+		</div>
+	</div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,27 @@
+
+#header{
+	margin: 69px;
+}
+
+#welcome{
+	font-size: 5em;
+}
+
+div.container-fluid *{
+	margin: auto;
+	text-align: center;
+}
+
+.nav-row{
+	width: 75%;
+}
+
+.img-div{
+	padding: 30px;
+}
+
+img{
+	width: 25%;
+}
+
+

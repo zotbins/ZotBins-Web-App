@@ -1,0 +1,14 @@
+#sensors
+#weight -> 6
+#distance -> 7
+http://sensoria.ics.uci.edu:8059/sensor/get?sensor_type_id=6
+
+#observations
+#weight -> 2
+#distance -> 3
+http://sensoria.ics.uci.edu:8059/observation/get?sensor_id=ZBin1&type=2&start_timestamp=2017-12-14+00%3A00%3A00&end_timestamp=2018-04-15+00%3A00%3A00
+
+
+#output
+[{"sensor_id":"F1HC123_weight","payload":"{\"weight\":1}","request_ids":"[]","id":2456521,"timestamp":"2017-11-11 12:11:11"},
+{"sensor_id":"F2HR23_weight","payload":"{\"distance\":1}","request_ids":"[]","id":2456535,"timestamp":"2017-11-11 12:11:11"}]

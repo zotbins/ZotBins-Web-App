@@ -1,0 +1,271 @@
+{% extends "MainTemplate.html" %}
+
+{% block includes %}
+<script src="static/js/Chart.min.js" language="JavaScript"></script>
+<script src="static/scripts/Charts.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/js/tempusdominus-bootstrap-4.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tempusdominus-bootstrap-4/5.0.1/css/tempusdominus-bootstrap-4.min.css" />
+<script src="static/scripts/BuildingStats.js"></script>
+<script src="static/scripts/TippersFormattedData.js"></script>
+<link rel="stylesheet" href="static/stylesheets/BuildingStats.css"></script>
+{% endblock %}
+
+{% block script %}
+
+//ajax
+$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+var type = {{type}};
+var start_timestamp = "{{start_timestamp}}";
+var end_timestamp = "{{end_timestamp}}";
+var interval_days = {{interval_days}};
+var interval_hours = {{interval_hours}};
+var interval_minutes = {{interval_minutes}};
+{% endblock %}
+
+
+{% block content %}
+	
+	<div class="pb-2 mt-4 mb-2 border-bottom">
+		<h1 id="title">Fullness and Weight Over Time</h2>
+	</div>
+	
+	<!-- icon buttons -->
+	<div class="row">
+		<div class="col-xl-3 col-sm-6 mb-3">
+			<div class="card nav-card active-nav-card" id="weight">
+				<div class="card-body">
+					<div class="col-xs-3">
+						<i class="fas fa-dumbbell fa-5x"></i>
+					</div>
+				</div>
+				<a class="card-footer" href="#">
+					<span class="float-left">Weight</span>
+					<span class="float-right">
+						<i class="fa fa-arrow-circle-down"></i>
+					</span>
+				</a>
+			</div>
+		</div>
+		<div class="col-xl-3 col-sm-6 mb-3">
+			<div class="card nav-card" id="fullness">
+				<div class="card-body">
+					<div class="col-xs-3">
+						<i class="fas fa-percentage fa-5x"></i>
+					</div>
+				</div>
+				<a class="card-footer" href="#">
+					<span class="float-left">Fullness</span>
+					<span class="float-right">
+						<i class="fa fa-arrow-circle-down"></i>
+					</span>
+				</a>
+			</div>
+		</div>
+		<div class="col-xl-3 col-sm-6 mb-3">
+			<div class="card nav-card"id="divergence">
+				<div class="card-body">
+					<div class="col-xs-3">
+						<i class="fas fa-recycle fa-5x"></i>
+					</div>
+				</div>
+				<a class="card-footer" href="#">
+					<span class="float-left">Divergence</span>
+					<span class="float-right">
+						<i class="fa fa-arrow-circle-down"></i>
+					</span>
+				</a>
+			</div>
+		</div>
+		<div class="col-xl-3 col-sm-6 mb-3">
+			<p><u><b>divergence</b></u>: The percentage of waste that is diverted away from landfill</p>	
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-lg-4 col-md-4 col-md-4 col-xs-4">
+			<div class="row">
+				<div class="col-12">
+					<!-- graph plot settings -->
+					<div class="card">
+						<div class="card-title">
+							<i class="fa fa-th-list fa-fw"></i>
+							Select  Location
+							<div class="btns">
+									<!-- <button type="reset" class="btn btn-default formbtn" id='reset'>Reset</button> -->
+									<button type="button" class="btn btn-primary formbtn" id="plot_points">Plot Graph</button>
+						
+							</div>
+						</div>
+						<!-- /.panel-heading -->
+					   <div class="card-body">
+							<form role="form"id="location-form">
+								<!-- Nav tabs -->
+								<div class="row"id="floor-pills">
+									<ul class="list-group " id="navpills">
+										<li class="list-group-item list-group-item-dark" ><a href="#building-pills" data-toggle="tab">Building</a>
+											
+										</li>
+										
+										<li class="list-group-item list-group-item-dark"><a href="#floors-pills" data-toggle="tab">Floors</a>
+										</li>
+										<!-- <li class="list-group-item list-group-item-dark"><a href="#regions-pills" data-toggle="tab">Regions</a> -->
+											
+										<!-- </li> -->
+										<!-- <li class="list-group-item list-group-item-dark"><a href="#rooms-pills" data-toggle="tab">Rooms</a> -->
+										<!-- </li> -->
+										
+										
+									</ul>
+									
+
+									<!-- Tab panes -->
+									<div class="tab-content col-lg-9 col-md-9 col-md-9 ">
+										<div class="select-pills tab-pane fade in active" id="building-pills">
+											<label class="checkbox">
+												<input type="checkbox" value="DBH" class="check" checked>
+												<span>Donald Bren Hall</span>
+											</label>
+										</div>
+										<div class="select-pills tab-pane fade" id="floors-pills">
+											<label class="checkbox">
+												<input type="checkbox" value="1" class="check floor_check" checked>
+												<span>1st Floor</span>
+											</label>
+											<label class="checkbox">
+												<input type="checkbox" value="2" class="check floor_check" checked>
+												<span>2nd Floor</span>
+											</label>
+											<label class="checkbox">
+												<input type="checkbox" value="3" class="check floor_check" checked>
+												<span>3rd Floor</span>
+											</label>
+											<label class="checkbox">
+												<input type="checkbox" value="4" class="check floor_check" checked>
+												<span>4th Floor</span>
+											</label>
+											<label class="checkbox">
+												<input type="checkbox" value="5" class="check floor_check" checked>
+												<span>5th Floor</span>
+											</label>
+											<label class="checkbox">
+												<input type="checkbox" value="6" class="check floor_check" checked>
+												<span>6th Floor</span>
+											</label>
+											
+										</div>
+										<div class="select-pills tab-pane fade" id="regions-pills">
+											
+										</div>
+										<div class="select-pills tab-pane fade" id="rooms-pills">
+											
+										</div>
+										
+									</div>
+										<!-- Tab panes -->
+								</div>
+								
+								
+							</form>
+						</div>
+						<!-- /.panel-body -->
+					</div>
+					<!-- /.panel -->
+				</div>
+				<!-- max width column -->
+			</div>
+			<!-- row -->
+			<div class="row">
+				<!-- aggregate stats -->
+				<div class="col-12">
+					<div class="card stat-card">
+						<div class="card-title">
+							<h1>Statistics</h1>
+						</div>
+						<div class="card-body">
+							<table class="table">
+							
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- /.col-lg-6 -->
+		<div class="col-lg-8 col-md-8 col-xs-8">
+			<div class="card">
+				<div class="card-body">
+					<div class="row">
+					
+						<div class='col-lg-3 col-md-4 col-xs-3'>
+							
+							<label> Start Date: </label>
+							<div class="input-group date" id="startdatetimepicker" data-target-input="nearest">
+								<input type="text" class="form-control datetimepicker-input" data-target="#startdatetimepicker"/>
+								<div class="input-group-append" data-target="#startdatetimepicker" data-toggle="datetimepicker">
+									<div class="input-group-text"><i class="fa fa-calendar"></i></div>
+								</div>
+							</div>
+							
+						</div>
+						<div class='col-lg-3 col-md-4 col-xs-3'>
+							
+							<label> End Date: </label>
+							<div class="input-group date" id="enddatetimepicker" data-target-input="nearest">
+								<input type="text" class="form-control datetimepicker-input" data-target="#enddatetimepicker"/>
+								<div class="input-group-append" data-target="#enddatetimepicker" data-toggle="datetimepicker">
+									<div class="input-group-text"><i class="fa fa-calendar"></i></div>
+								</div>
+							</div>
+							
+						</div>
+						<div class='col-lg-3 col-md-4 col-xs-3'>
+						
+							<label> Interval:      </label>
+							<div class="form-row">
+								<div class='col-lg-6 col-md-4 col-xs-3 interval-input'>
+									<input id = "days_input" type="number" class="form-control" value="{{interval_days}}">
+									<p>days</p>
+								</div>
+								<div class='col-lg-6 col-md-4 col-xs- interval-input'>
+									<input id = "hours_input" type="number" class="form-control" value="{{interval_hours}}">
+									<p>hours</p>
+								</div>
+								<!-- <div class='col-lg-4 col-md-4 col-xs-3 interval-input'> -->
+									<!-- <input id = "minutes_input" type="number" class="form-control" value="{{interval_minutes}}"> -->
+									<!-- <p>minutes</p> -->
+								<!-- </div> -->
+							</div>
+						
+						</div>
+						<div class='col-lg-3 col-md-4 col-xs-3'>
+							<div class="radio">
+								<label><input type="radio" name="chart_type" value="accumulated" id="accumulated" checked>Accumulated</label>
+							</div>
+							<div class="radio">
+								<label><input type="radio" name="chart_type" value="real-time" id="real-time">Real-time</label>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+				<div class="progress">
+					<div class="notransition progress-bar progress-bar-success progress-bar-striped" role="progressbar" id="progress"
+					aria-valuenow="0" aria-valuemin="0" aria-valuemax="0" style="width:0%">
+					
+					</div>
+				</div>
+
+				<!-- /.panel-heading -->
+				<div class="panel-body ">		
+					<!-- bar chart canvas element -->
+					<canvas id= "chart" width="150" height="100"></canvas>				
+				</div>
+				<!-- /.panel-body -->
+			</div>
+			
+			<!-- /.panel -->
+		</div>
+		<!-- /.col-lg-8 -->
+	</div>
+{% endblock %}

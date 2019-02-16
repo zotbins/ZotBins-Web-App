@@ -1,0 +1,38 @@
+
+{% extends "MainTemplate.html" %}
+
+{% block includes %}
+<!-- leaflet maps -->
+<link href = "static/js/leaflet.css" rel="stylesheet">
+<script src="static/js/leaflet.js"></script>
+<script src="static/scripts/LeafletMaps.js"></script>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script type="text/javascript" src="static/scripts/closestBin.js"></script>
+<!-- <script type="text/javascript" src="static/FloorPlan/paintFloor.js"></script> -->
+{% endblock %}
+
+
+{% block style %}
+div.container-fluid{
+	text-align: center;
+}
+{% endblock %}
+
+
+{% block script %}
+	var user_location = {{user_location}};
+	var closest_bins = {{closest_bins|tojson}};
+	var bin_type = "{{bin_type}}";
+	var rooms = {{rooms|tojson}};
+{% endblock %}
+
+
+{% block content %}
+<!-- <img src="static/recycling_bin.PNG"> -->
+<!-- <div id="canvasContainer"> -->
+	<!-- <canvas id="myCanvas" height="750" width="900"></canvas> -->
+<!-- </div> -->
+<div id = "map" style = "background : #888888;"></div>
+{% endblock %}

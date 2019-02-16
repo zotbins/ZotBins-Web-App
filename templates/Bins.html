@@ -1,0 +1,36 @@
+
+{% extends "MainTemplate.html" %}
+
+{% block style %}
+	div.container-fluid{
+		text-align: center;
+	}
+
+	div.container-fluid *{
+		margin: auto;
+	}
+	input#submit{
+		display: block;
+		margin-top: 20px;
+	}
+{% endblock %}
+
+{% block script %}
+	$(function() {
+		$('.chosen-select').chosen({
+			width: "20%",
+		});
+	});
+{% endblock %}
+
+
+{% block content %}	
+	<h1>Select and View Floor Maps With All Bins</h1>
+	<form action = "BinsOnSelectedFloor" method = "POST" id="bins_on_selected_floor_form">
+		<select name="Floor" class="chosen-select" id="autocomplete">
+			<option value="1">Floor1</option>
+			<option value="2">Floor2</option>
+		</select>
+		<input type="submit" id="submit" class="btn btn-primary" value="Select Floor"/>
+	</form>
+{% endblock %}

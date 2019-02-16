@@ -1,0 +1,64 @@
+
+div.container-fluid{
+	text-align: center;
+}
+
+div.container-fluid *{
+	margin: auto;
+}
+
+#title{
+	font-size: 64px;
+	font-weight: bold;
+	padding-bottom: 20px;
+}
+
+label{
+	font-size: 36px;
+	font-weight: bold;
+}
+
+#closest_bin_form > *{
+	display: block;
+	margin-bottom: 20px;
+}
+
+#closest_bin_form > label > input{
+	margin-right: 5px;
+}
+
+#select_bin_type > label > input{ 
+	visibility: hidden; 
+	position: absolute; 
+}
+
+#select_bin_type > label{
+	display: inline-block;
+	width: 25%;
+}
+
+#select_bin_type > label > img{
+	width: 90%;
+}
+
+#select_bin_type > label > input + img{
+	cursor:pointer;
+	border:10px solid transparent;
+}
+
+#select_bin_type > label > input:checked + img{ 
+	border:10px solid #f00;
+}
+
+#select_bin_type > label > input:not(:checked) + img{ 
+	opacity: 0.5;
+}
+
+button#submit{
+	margin-top: 50px;
+	font-size: 50px;
+}
+
+#select_floor{
+	margin: 20px;
+}
