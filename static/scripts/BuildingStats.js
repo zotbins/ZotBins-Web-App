@@ -38,8 +38,8 @@ function update_chart_obs(type){
 		var payload_type = "distance";
 		options["scales"]["yAxes"][0]["scaleLabel"]["labelString"] = 'Percent Average Fullness';
 	}
-		get_interval_data({real_time: real_time, start_timestamp: start_timestamp, end_timestamp: end_timestamp,
-							interval: interval, floors: floors}).then(function(data){
+	get_interval_data({real_time: real_time, start_timestamp: start_timestamp, end_timestamp: end_timestamp,
+						interval: interval, floors: floors}).then(function(data){
 		barData.labels = [];
 		for(label in data["labels"]){
 			barData.labels.push(data["labels"][label].format('YYYY-MM-DD hh:mm A'));

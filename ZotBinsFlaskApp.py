@@ -29,23 +29,19 @@ def leaderboard():
 def tportal():
 	return render_template("tportal_login.html")
 
-@app.route("/")
-@app.route("/index")
+@app.route("/", methods=["GET", "POST"])
+@app.route("/index", methods=["GET", "POST"])
 def landing_page():
-	session.clear()
-	
-	#MAKE SURE TO CHANGE THIS
-	session['email'] = "caoj11@uci.edu"
-	session['tippershost'] = "http://sensoria.ics.uci.edu:8059"
-	#MAKE SURE TO CHANGE THIS
-	
-	return render_template("index.html")
+	if request.method == 'POST':
+		session.clear()
+		session["email"] = request.values.get("email")
+		session["tippershost"] = request.values.get("tippershost")
+		return render_template("login.html", name=request.values.get("email"), tippershost=request.values.get("tippershost"))
+	else:
+		return render_template("index.html")
 
 @app.route("/FindClosestBin")
 def find_closest_bin():
-	#redirect to tportal if not logged in
-	if not_logged_in():
-		return render_template("tportal_login.html")
 	r = get_tippers_rooms()
 	rooms = []
 	for area in r:
@@ -55,9 +51,6 @@ def find_closest_bin():
 	
 @app.route ("/ClosestBin", methods = ['POST'])
 def closest_bin():
-	#redirect to tportal if not logged in
-	if not_logged_in():
-		return render_template("tportal_login.html")
 	#closest bin using tportal	
 	location = get_location()
 	#print(location)
@@ -91,16 +84,10 @@ def closest_bin():
 
 @app.route("/Bins")
 def bins():
-	#redirect to tportal if not logged in
-	if not_logged_in():
-		return render_template("tportal_login.html")
 	return render_template("Bins.html")
 
 @app.route("/BuildingStats", methods=['GET', 'POST'])
 def building_stats():
-	#redirect to tportal if not logged in
-	if not_logged_in():
-		return render_template("tportal_login.html")
 	#setup timestamps and labels
 	start_timestamp = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:00')
 	end_timestamp = (datetime.now()).strftime('%Y-%m-%d %H:%M:00')
@@ -111,17 +98,11 @@ def building_stats():
 	
 @app.route("/SelectedBuildingStats", methods = ['POST'])
 def selected_building_stats():
-	#redirect to tportal if not logged in
-	if not_logged_in():
-		return render_template("tportal_login.html")
 	return render_template("SelectedBuildingStats.html")
 
 	
 @app.route("/TestBin", methods = ['GET', 'POST'])
 def test_bin():
-	#redirect to tportal if not logged in
-	if not_logged_in():
-		return render_template("tportal_login.html")
 	bin_id = request.args.get("binID")
 	bin_type = request.args.get("binType")
 	
@@ -133,9 +114,6 @@ def test_bin():
 
 @app.route("/BinsOnSelectedFloor", methods = ['POST'])
 def bins_on_selected_floor():
-	#redirect to tportal if not logged in
-	if not_logged_in():
-		return render_template("tportal_login.html")
 	r = requests.get("http://sensoria.ics.uci.edu:8059/sensor/get?sensor_type_id=6")
 	bins = eval(r.text)
 	floor_bins = []

@@ -44,13 +44,11 @@
 		
 		<script>
 		
-		<!-- var email = 'HELLO' -->
-		<!-- var TIPPER_HOST = 'YEA' -->
-		
-		<!-- $(document).ready (function() { -->
-			<!-- var email = "HELLO" -->
-			<!-- $.post("/login", {'email'} -->
-		<!-- }); -->
+		$(document).ready (function() {
+			if(sessionStorage.getItem("email") === null || sessionStorage.getItem("tipperhost")){
+				window.open("http://tippersweb.ics.uci.edu/tportal/index.html", "_self");
+			}
+		});
 			
 		</script>
 		
