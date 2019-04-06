@@ -1,0 +1,8 @@
+<script src="static/vendor/jquery/jquery.min.js"></script>
+<script>
+$(document).ready(function(){
+	sessionStorage.setItem("email", "{{email}}");
+	sessionStorage.setItem("tippershost", "{{tipperhost}}");
+	window.open("/index", "_self")
+});
+</script>
