@@ -2,7 +2,25 @@
 author: Joshua Cao
 
 This file provides functions to asynchronously get TIPPERS data in a convenient format.
-The important functions are located at the bottom.
+The public functions are located at the bottom.
+
+A Note on 'name_func'
+name_func is an object with names as keys and functions as values
+the functions should take a standard TIPPERS sensor object as input
+e.g.
+{
+	"owner": "8438",
+	"Type": "6",
+	"name": "CZotBinSC3 WeightSensor",
+	"x": "30",
+	"description": "ZotBinSC3 Weight Sensor for Compost",
+	"y": "10",
+	"z": "6",
+	"id": "ZBinSC3"
+}
+the function will return true if the sensor matches certain criteria
+for example, if you want to find recycling bins on the 3rd floor an entry in name_func might be
+{..., "Recycling_3rdfloor" : (sensor) => return sensor["name"][0] == "R" && sensor["z"] == "3",...}
 */
 
 
@@ -19,160 +37,125 @@ var TIPPERS_MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 
 //PRIVATE
 
+// @param name_func an object that has names as indicies and functions as values (see top of file for details)
+// @param sensors an array of sensors in the TIPPERS sensor format
+// @param labels_list a list of Moment date objects that are the data point intervals
+// @param real_time true if getting real time data, false if getting accumulated data
+// @param sensor_type 6 for WEIGHT_SENSOR_TYPE, 7 for DIST_SENSOR_TYPE
 
-function get_real_time_data(labels_list, sensors, payload_type, landfill_obs, recycling_obs, compost_obs){
-	
-	function create_real_time_callback(sensor){
+// @return a thenable object that has data with format
+// {"labels": labels_list, "data": {name1: [list of datapoints], ..., nameN: [list of datapoints]}}  
+function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_type){
+	console.log(name_func)
+	//each callback adds the given sensors payload to the appropriate groups
+	//@param sensor the sensor object in the format in the TIPPERS sensor(might not need this)
+	//@param satisfied_names a list of number representing the group numbers that the sensor satisfies
+	function create_callback(sensor, satisfied_names){
 		return function(observations){
-			//store payload and a count in a variable
-			var payload = 0;
-			var i = 0;
-							
-			//set it to be labels_list plus the date one interval before
 			for(date in labels_list){
 				// reset payload
 				payload = 0;
-				for(observation in observations){
+				for(o in observations){
 					// if observation timestmap is greater than the date in the labels list, break out of loop
-					if(moment(observations[observation]["timestamp"], TIPPERS_MOMENT_FORMAT) > labels_list[date]){
+					var obs = observations[o];
+					if(moment(obs["timestamp"], TIPPERS_MOMENT_FORMAT) > labels_list[date]){
 						break
 					}
-					// set payload depending on sensor type
-					if(type == WEIGHT_SENSOR_TYPE){
-						payload = observations[observation]["payload"][payload_type];
-					}
-					else if(type == DIST_SENSOR_TYPE){
-						payload = observations[observation]["payload"][payload_type];
-						//this is no good cause i pushed percentages into tippers
-						// payload = (BIN_HEIGHT - payload) / BIN_HEIGHT * 100;
-						if(payload > 1){
-							payload = 0;
-						}
+					payload = obs["payload"][payload_type];
+					if(sensor_type == DIST_SENSOR_TYPE && payload > 1){
+						payload = 0;
 					}
 				}
-				//add payload to the data lists
-				if(sensor["name"][0] == "L"){
-					landfill_obs[i] = landfill_obs[i] + payload;
-				}
-				else if(sensor["name"][0] == "R"){
-					recycling_obs[i] = recycling_obs[i] + payload;
-				}
-				else if(sensor["name"][0] == "C"){
-					compost_obs[i] = compost_obs[i] + payload;
-				}
-				++i;
+				for(name in satisfied_names){
+					data[satisfied_names[name]][date] += payload;	
+				}	
+			}	
+		}
+	}
+	
+	//helper function that returns the groups that the given sensor satisifies
+	//@param sensor the sensor object in the format in the TIPPERS sensor
+	function get_satisfied_names(sensor){
+		satisfied_names = [];
+		for(name in name_func){
+			if(name_func[name](sensor)){
+				satisfied_names.push(name);
 			}
 		}
+		return satisfied_names;
 	}
 	
-	var start_timestamp = labels_list[0].subtract(1, 'days').format(TIPPERS_MOMENT_FORMAT);
-	var end_timestamp = labels_list[labels_list.length - 1].format(TIPPERS_MOMENT_FORMAT);
-	var deferreds = [];
-	for(sensor in sensors){
-		// console.log(sensors[sensor]["name"])
-		//get observations for each sensor within the specified floors
-		if(floors.indexOf(Number(sensors[sensor]["z"])) != -1 &&
-		sensors[sensor]["id"] != "zot-bin-weight-1" || sensors[sensor]["id"] != "zot-bin-weight-2"){
-			deferreds.push( $.getJSON(BASE_OBS_URL + "sensor_id=" + sensors[sensor]["id"] +
-									"&start_timestamp=" + encodeURIComponent(start_timestamp) +
-									"&end_timestamp=" + encodeURIComponent(end_timestamp),
-									create_real_time_callback(sensors[sensor])));
+	//set up the data object that will be returned
+	data = {};
+	for(name in name_func){
+		data[name] = [];
+		for(interval in labels_list){
+			data[name].push(0);
 		}
 	}
 	
-	return deferreds;
+	//set up payload_type for TIPPERS querying
+	var payload_type = "weight";
+	if(sensor_type == DIST_SENSOR_TYPE){
+		payload_type = "distance";
+	}
+	
+	//add a deferred call for each sensor 
+	//important to only add sensors that satisfy a group to limit API calls
+	var deferreds = [];
+	var start_timestamp = labels_list[0].format(TIPPERS_MOMENT_FORMAT);
+	var end_timestamp = labels_list[labels_list.length - 1].format(TIPPERS_MOMENT_FORMAT);
+	for(s in sensors){
+		//get observations for each sensor within the specified floors
+		//need to remove zot-bin-weight-N from TIPPERS
+		var sensor = sensors[s];
+		var satisfied_names = get_satisfied_names(sensor);
+		if(satisfied_names.length > 0 &&
+		sensor["id"] != "zot-bin-weight-1" || sensor["id"] != "zot-bin-weight-2"){
+			deferreds.push( $.getJSON(BASE_OBS_URL + "sensor_id=" + sensor["id"] +
+									"&start_timestamp=" + encodeURIComponent(moment(start_timestamp).format(TIPPERS_MOMENT_FORMAT)) +
+									"&end_timestamp=" + encodeURIComponent(moment(end_timestamp).format(TIPPERS_MOMENT_FORMAT)),
+									create_callback(sensor, satisfied_names)));
+		}
+	}
+	
+	//return the thenable object that will contain the labels and data points
+	return $.when.apply($, deferreds).then(function(){	
+		//average out across sensors when doing distance
+		if(sensor_type == DIST_SENSOR_TYPE && sensors.length > 0){
+			for(d in data){
+				var grp = data[d];
+				for(obs in grp){
+					grp[obs] /= sensors.length;
+				}
+			}
+		}
+		//accumulate data if needed
+		if(!real_time){
+			data = accumulate_data(data);
+		}
+		return {"data": data, "labels": labels_list};
+	});
 }
 
 
-
-function get_accumulated_data(labels_list, sensors, payload_type, landfill_obs, recycling_obs, compost_obs, floors){
-	
-	function create_accumulated_callback(sensor){
-		return function(observations){
-			//store payload and a count in a variable
-			var payload;
-			var i = 0;
-			
-			//store previous payload to check if bin was emptied out
-			var prev_payload = 0;
-			
-			//store the accumulated amount to the data in a var
-			var acc_payload;
-			
-			// set previous date to the first date minus the interval
-			// prev_date = moment(labels_list[0]).subtract(interval_days, 'days').subtract(interval_hours, 'hours')
-																				// .subtract(interval_minutes, 'minutes'); 
-							
-			//set it to be labels_list plus the date one interval before
-			for(date in labels_list){
-				// reset payload, prev_payload and accumulated payload
-				payload = 0;	
-				prev_payload = 0;
-				acc_payload = 0;
-				for(observation in observations){
-					// if observation timestmap is greater than the date in the labels list, break out of loop
-					if(moment(observations[observation]["timestamp"], TIPPERS_MOMENT_FORMAT) > labels_list[date]){
-						break
-					}
-					// set payload depending on sensor type
-					if(type == WEIGHT_SENSOR_TYPE){
-						payload = observations[observation]["payload"][payload_type];
-					}
-					else if(type == DIST_SENSOR_TYPE){
-						payload = (BIN_HEIGHT - payload) / BIN_HEIGHT * 100;
-					}
-					//check previous payload to see how much was added
-					//if percent different is greater than 25%
-					//or the current or previous payload is 0, the bin was emptied
-					//set acc_payload to the payload
-					if((Math.abs(payload - prev_payload) / ((payload + prev_payload) / 2) > .25)
-						|| payload == 0 || prev_payload == 0){
-						acc_payload += payload;
-					}
-					//if the new payload is greater than the previous payload, the acc_payload is the difference between the two
-					else if(payload > prev_payload){
-						acc_payload += payload - prev_payload
-					}
-					//if acc_payload is less than payload, but the percent difference is less than 50%, leave acc_payload as 0
-					//set previous payload equal to the current payload
-					prev_payload = payload;
-				}
-				//add payload to the data lists
-				if(sensor["name"][0] == "L"){
-					landfill_obs[i] = landfill_obs[i] + acc_payload;
-				}
-				else if(sensor["name"][0] == "R"){
-					recycling_obs[i] = recycling_obs[i] + acc_payload;
-				}
-				else if(sensor["name"][0] == "C"){
-					compost_obs[i] = compost_obs[i] + acc_payload;
-				}
-				// prev_date = moment(labels_list[date]);
-				++i;
-			}
+//this function takes real_time data and converts it to accumulated data
+//@param data a data object in the following format:
+//{name1 : [data_point1, dp2, ...dpM], name2 : [dp1-M], ... nameN : [dp1-M]}
+//@return data object in the same format but is now accumulated
+function accumulate_data(data){
+	for(name in data){
+		var data_points = data[name];
+		for(var i = 1; i < data_points.length; ++i){
+			data_points[i] += data_points[i-1];
 		}
 	}
-	
-	var start_timestamp = labels_list[0].format(TIPPERS_MOMENT_FORMAT);
-	var end_timestamp = labels_list[labels_list.length - 1].format(TIPPERS_MOMENT_FORMAT);
-	var deferreds = [];
-	for(sensor in sensors){
-		//get observations for each sensor within the specified floors
-		if(floors.indexOf(Number(sensors[sensor]["z"])) != -1){
-			deferreds.push( $.getJSON(BASE_OBS_URL + "sensor_id=" + sensors[sensor]["id"] +
-									"&start_timestamp=" + encodeURIComponent(moment(start_timestamp).format(TIPPERS_MOMENT_FORMAT)) +
-									"&end_timestamp=" + encodeURIComponent(moment(end_timestamp).format(TIPPERS_MOMENT_FORMAT)),
-									create_accumulated_callback(sensors[sensor])));
-		}
-	}
-	return deferreds;
+	return data;
 }
 
 
 
 //PUBLIC
-
-
 
 /*
 @param real_time true if getting real time data, false if getting accumulated data
@@ -180,10 +163,10 @@ function get_accumulated_data(labels_list, sensors, payload_type, landfill_obs, 
 @param start_timestamp moment object
 @param end_timestamp moment object
 @param interval how many hours between each interval
-@param floors a list of floors to get data from
+@param name_func an object that has names as indicies and functions as values (see top of file for details)
 
 @return a thenable where the data is in the format:
-{'labels': [], 'recycling_obs': [], 'landfill_obs': [], 'compost_obs': []} where each array is the same size
+// {"labels": labels_list, "data": {name1: [list of datapoints], ..., nameN: [list of datapoints]}}  
 labels contains the timestamps, and the other arrays contains the corresponding data points
 example call: get_interval_data(...).then(function(data){...});
 
@@ -192,10 +175,9 @@ example call: get_interval_data(...).then(function(data){...});
 -accumulated data example: at 1:00PM, bins have 100g, between 1:00 and 2:00PM, 50g was thrown in bins,
  data point at 2:00PM now has 100g + 50g = 150g
 */
-// function get_interval_data(real_time, sensor_type, start_timestamp, end_timestamp, interval_days, interval, floors){	
-function get_interval_data({real_time = true, sensor_type = 6, start_timestamp = moment().subtract(1, 'days'),
-							end_timestamp = moment(), interval = 1, floors = [1]} 
-							= {}){	
+function get_data({real_time = true, sensor_type = 6, start_timestamp = moment().subtract(1, 'days'),
+					end_timestamp = moment(), interval = 1, name_func = {}} 
+					= {}){console.log(name_func)
 	// set up labels
 	labels_list = [];
 	var label = start_timestamp;
@@ -203,61 +185,26 @@ function get_interval_data({real_time = true, sensor_type = 6, start_timestamp =
 
 	//set start_timestamp to one interval earlier
 	// moment_start = moment(start_timestamp, displayMomentFormat);
-	label.subtract(interval_days, 'days').subtract(interval, 'hours');
+	label.subtract(interval, 'hours');
 	start_timestamp = label.format('YYYY-MM-DD hh:mm A');
 	
 	// add labels to a labels_list
 	while(label < end_d){
 		labels_list.push(moment(label));
-		label.add(interval_days, 'days').add(interval, 'hours');
+		label.add(interval, 'hours');
 	}
 	// push the last date to make sure we cover the end date
 	labels_list.push(moment(label));
 	
-	//store observations
-	landfill_obs = [];
-	recycling_obs = [];
-	compost_obs = [];
-	
-	//fill each data list with 0
-	for(var i = 0; i < labels_list.length; ++i){
-		landfill_obs.push(0);
-		recycling_obs.push(0);
-		compost_obs.push(0);
-	}
-	
-	//set payload type 
-	payload_type = "weight";
-	if(sensor_type == DIST_SENSOR_TYPE){
-		payload_type = "distance";
-	}
-
 	// get bin data
 	// loop starting from sensors to minimize tippers requests
 	// this way we retrieve observations for each sensor only once
-	console.log(BASE_SENSOR_URL + "sensor_type_id=" + sensor_type)
-	return $.getJSON( BASE_SENSOR_URL + "sensor_type_id=" + sensor_type).then(function( data ) {	
-		console.log("b");
-		sensors = data;
+	return $.getJSON( BASE_SENSOR_URL + "sensor_type_id=" + sensor_type).then(function( sensors ) {	
 		// use promises to wait for all api requests before returning
-		if(real_time) {
-			var deferreds = get_real_time_data(labels_list, sensors, payload_type, landfill_obs, recycling_obs, compost_obs, floors);
-		}
-		else{
-			var deferreds = get_accumulated_data(labels_list, sensors, payload_type, landfill_obs, recycling_obs, compost_obs, floors);
-		}
-		return $.when.apply($, deferreds).then(function(){		
-			//average distance
-			if(sensor_type == DIST_SENSOR_TYPE){
-				console.log("dist");
-				for(i in labels_list){
-					landfill_obs[i] /= sensors.length;
-					recycling_obs[i] /= sensors.length;
-					compost_obs[i] /= sensors.length;
-				}
-			}
-			return {'labels': labels_list, 'recycling_obs': recycling_obs, 'landfill_obs': landfill_obs, 'compost_obs': compost_obs}
-		});
-		
-	});
+		var data = get_real_time_data(name_func, sensors, labels_list, real_time, sensor_type);
+		return data;
+	});			
 }
+
+
+

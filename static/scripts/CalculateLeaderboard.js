@@ -1,66 +1,44 @@
 
+/*
+author: Joshua Cao
+
+helper functions for Leaderboard.js
+was originally intended to have functions that calculate the leaderboard rankings
+turns out most of the rankings can be done through TipperFormattedData.js so there isn't much here
+we can consider moving everything here to Leaderboard.js and removing this file
+*/
+
 var TIPPERS_MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 
 
-function get_leaderboard_data(sensors, leaderboard, waste_type, leaderboard_type, start_time=null, end_time=null){
-	
-	function create_accumulated_callback(sensor){
-		return function(observations){
-			//store payload and a count in a variable
-			var payload;
-			
-			//store previous payload to check if bin was emptied out
-			var prev_payload = 0;
-			
-			//store the accumulated amount to the data in a var
-			var acc_payload;
-							
-			// reset payload, prev_payload and accumulated payload
-			payload = 0;	
-			prev_payload = 0;
-			acc_payload = 0;
-			for(observation in observations){
-				payload = observations[observation]["payload"]["weight"];
-				//check previous payload to see how much was added
-				//if percent different is greater than 25%
-				//or the current or previous payload is 0, the bin was emptied
-				//set acc_payload to the payload
-				if((Math.abs(payload - prev_payload) / ((payload + prev_payload) / 2) > .25)
-					|| payload == 0 || prev_payload == 0){
-					acc_payload += payload;
-				}
-				//if the new payload is greater than the previous payload, the acc_payload is the difference between the two
-				else if(payload > prev_payload){
-					acc_payload += payload - prev_payload
-				}
-				//if acc_payload is less than payload, but the percent difference is less than 50%, leave acc_payload as 0
-				//set previous payload equal to the current payload
-				prev_payload = payload;
-			}
-			leaderboard[sensor[leaderboard_type]] += acc_payload;
+//@param name_func an object that has names as indicies and functions as values (see top of TippersFormattedData.js for details)
+//@param start_timestamp moment object
+//@param end_timestamp moment object
+function get_waste_leaderboard({name_func = {}, start_timestamp = moment().subtract(30, 'days'),
+					end_timestamp = moment()} 
+					= {}){
+						console.log(30)
+	return get_data({real_time: false, start_timestamp: start_timestamp, end_timestamp: end_timestamp,
+						interval: 24, name_func: name_func}).then(function(data){
+		//leaderboard data contains the information we want to return
+		var leaderboard_data = {};
+		//we are only interested in "data"
+		data = data["data"];
+		//for each name, we are only interested in the last point
+		//which has the accumulated value of the entire time range
+		for(name in data){
+			leaderboard_data[name] = data[name][data[name].length-1];
 		}
-	}
-	
-	var deferreds = [];
-	for(i in sensors){
-		sensor = sensors[i];
-		if(sensor["name"][0] == waste_type){
-			if(!leaderboard.hasOwnProperty(sensor[leaderboard_type])){
-				leaderboard[sensor[leaderboard_type]] = 0;
-			}
-			deferreds.push( $.getJSON(BASE_OBS_URL + "sensor_id=" + sensor["id"] +
-									"&start_timestamp=" + encodeURIComponent(start_time) +
-									"&end_timestamp=" + encodeURIComponent(end_time),
-									create_accumulated_callback(sensor)));
-		}
-	}
-	return deferreds;
+		return leaderboard_data;
+	});
 }
 
 
 
 
 
+
+//this function is busted, someone go
 function get_divergence_leaderboard(start_time=null, end_time=null){
 	
 	function create_callback(floor){
@@ -98,27 +76,5 @@ function get_divergence_leaderboard(start_time=null, end_time=null){
 	return $.when.apply($, deferreds).then(function(data){
 		console.log(leaderboard)
 		return leaderboard;
-	});
-}
-
-
-//waste type "D" is divergence
-function get_leaderboard(waste_type, leaderboard_type, start_time=null, end_time=null){
-	var leaderboard = {};
-	//set time frame to the most recent day if time is not given
-	if(start_time === null || end_time === null){
-		start_time = moment().subtract(60, 'days').format(TIPPERS_MOMENT_FORMAT);
-		end_time = moment().format(TIPPERS_MOMENT_FORMAT);
-	}
-	// get bin data
-	// loop starting from sensors to minimize tippers requests
-	// this way we retrieve observations for each sensor only once
-	return $.getJSON( BASE_SENSOR_URL + "sensor_type_id=6").then(function( data ) {	
-		sensors = data;
-		var deferreds = get_leaderboard_data(sensors, leaderboard, waste_type, leaderboard_type, start_time, end_time);
-		return $.when.apply($, deferreds).then(function(data){
-			return leaderboard;
-		});
-		
 	});
 }

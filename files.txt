@@ -1,0 +1,37 @@
+any html/js not listed here is probably not currently used
+
+HTML - templates/
+Bins.html: page for individual bins
+BuildingStats.html: page to view data in chart format
+FindClosestBin.html: waste guide page
+index.html: home page
+Leaderboard.html: leaderboards page
+MainTemplate.html: template that all other pages extend, contains information that are uniform 
+		across all pages, such as the footer
+
+
+Javascript - static/scripts/
+each html page has one main js file along with 0 or more helper files
+
+Home page:
+main: index.js
+
+Building Stats
+main: BuildingStats.js
+helper: Charts.js
+
+Waste Guide
+main: FindClosestBin.js
+helper: LeafletMaps.js
+
+Leaderboard
+main: Leaderboard.js
+helper: CalculateLeaderboard.js
+
+VERY IMPORTANT FILES:
+TippersFormattedData.js: 
+	currently used by BuildingStats and Leaderboards
+	provides a way to get TIPPERS data in a convenient format
+TippersRequests.js:
+	currently used by everything
+	has functions that gets raw TIPPERS data

@@ -8,6 +8,11 @@ var DISPLAY_MOMENT_FORMAT = 'YYYY-MM-DD hh:mm A';
 
 var floors = [];
 
+colors = {
+	"Recycling" : ["blue", "rgba(0, 0, 255, .1)"],
+	"Landfill" : ["red", "rgba(0, 0, 255, .1)"],
+	"Compost" : ["green", "rgba(0, 255, 0, .1)"]
+}
 var rColor = "blue";
 var rBackground = "rgba(0, 0, 255, .1)";
 
@@ -29,6 +34,20 @@ var compost_obs;
 
 var real_time = true;
 
+
+function within_location(sensor){
+	return floors.includes(parseInt(sensor["z"]));
+}
+
+name_func = {
+	"Landfill": (sensor) => {return sensor["name"].length > 0 && sensor["name"][0]	== "L" &&
+				within_location(sensor)},
+	"Recycling":(sensor) => {return sensor["name"].length > 0 && sensor["name"][0]	== "R" &&
+				within_location(sensor)},
+	"Compost": (sensor) => {return sensor["name"].length > 0 && sensor["name"][0]	== "C" &&
+				within_location(sensor)}
+}
+
 function update_chart_obs(type){
 	if(type == WEIGHT_SENSOR_TYPE){
 		var payload_type = "weight";
@@ -37,27 +56,28 @@ function update_chart_obs(type){
 	else{
 		var payload_type = "distance";
 		options["scales"]["yAxes"][0]["scaleLabel"]["labelString"] = 'Percent Average Fullness';
-	}
-	get_interval_data({real_time: real_time, start_timestamp: start_timestamp, end_timestamp: end_timestamp,
-						interval: interval, floors: floors}).then(function(data){
+	}	
+	get_data({real_time: real_time, start_timestamp: start_timestamp, end_timestamp: end_timestamp,
+						interval: interval, name_func: name_func}).then(function(data){
+		console.log(data);
 		barData.labels = [];
 		for(label in data["labels"]){
 			barData.labels.push(data["labels"][label].format('YYYY-MM-DD hh:mm A'));
 		}
-		var landfill = data["landfill_obs"];
-		var recycling = data["recycling_obs"];
-		var compost = data["compost_obs"]
 		
-		barData.datasets = [
-				get_dataset(landfill, "Landfill " + payload_type, lColor, lBackground),
-				get_dataset(recycling, "Recycling " + payload_type, rColor, rBackground),
-				get_dataset(compost, "Compost " + payload_type, cColor, cBackground)
-			];
+		barData.datasets = [];
+		var series = data["data"];
+		for(s in series){
+			barData.datasets.push(get_dataset(series[s], s + " " + payload_type, colors[s][0], colors[s][1]));
+		}
 				 
 	    chart.update();
 	    $('#plot_points').prop('disabled', false);
 		
 		//update stat table
+		var landfill = data["data"]["Landfill"];
+		var recycling = data["data"]["Recycling"];
+		var compost = data["data"]["Compost"];
 		if(type == DIST_SENSOR_TYPE){
 			update_fullness_table(landfill, recycling, compost, data["labels"][0].format('YYYY-MM-DD hh:mm A'),
 			data["labels"][data["labels"].length-1].format('YYYY-MM-DD hh:mm A'));
@@ -66,14 +86,12 @@ function update_chart_obs(type){
 			update_divergence_table(landfill, recycling, compost, data["labels"][0].format('YYYY-MM-DD hh:mm A'),
 			data["labels"][data["labels"].length-1].format('YYYY-MM-DD hh:mm A'));
 		}
-		console.log("not async if first");
 	});
-	console.log("async if first")
 }
 
 function update_chart_divergence(){
-	get_interval_data({real_time: real_time, start_timestamp: start_timestamp, end_timestamp: end_timestamp,
-							interval: interval, floors: floors}).then(function(data){
+	get_data({real_time: real_time, start_timestamp: start_timestamp, end_timestamp: end_timestamp,
+						interval: interval, name_func: name_func}).then(function(data){
 		options["scales"]["yAxes"][0]["scaleLabel"]["labelString"] = 'Percent Divergence';
 		
 		barData.labels = [];
@@ -82,9 +100,9 @@ function update_chart_divergence(){
 		}
 		var divergence = [];
 		
-		var landfill = data["landfill_obs"];
-		var recycling = data["recycling_obs"];
-		var compost = data["compost_obs"];
+		var landfill = data["data"]["Landfill"];
+		var recycling = data["data"]["Recycling"];
+		var compost = data["data"]["Compost"];
 		
 		for(var i = 0; i < data["labels"].length; ++i){
 			if(recycling[i] + compost[i] + landfill[i] == 0){
