@@ -38,6 +38,7 @@ BIN_HEIGHT = 80
 # @return all tippers rooms as a json object
 # http://sensoria.ics.uci.edu:8059/infrastructure/get?
 def get_tippers_rooms():
+	print(session)
 	return eval(requests.get(session["tippershost"] + BASE_ROOMS_URL).text)
 	
 # @param the floor of the rooms

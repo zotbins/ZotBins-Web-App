@@ -7,11 +7,11 @@
 <link href = "static/js/leaflet.css" rel="stylesheet">
 <script src="static/js/leaflet.js"></script>
 <script src="static/scripts/LeafletMaps.js"></script>
+<script src="static/scripts/TippersRequests.js"></script>
 {% endblock %}
 
 {% block script %}
 $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-var bins = {{bins|tojson}}
 {% endblock %}
 
 {% block content %}

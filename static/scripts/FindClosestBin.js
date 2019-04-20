@@ -5,6 +5,15 @@ var floor = 1;
 var type = "R"
 var found_bin = "";
 
+var bins;
+
+function load_bins(){
+	get_sensors(6).done(function(data){
+		bins = data;
+		loadNewMap();
+	});
+}
+
 function loadNewMap(){
 	map.remove();
 	$(".map-container").append("<div id = 'map' style = 'background : #888888;'></div>");
@@ -47,5 +56,5 @@ $(document).ready(function(){
 			}
 		});
 	});
-	loadNewMap();
+	load_bins();
 });

@@ -20,14 +20,6 @@ app.register_blueprint(utils_blueprint)
 
 app.secret_key = b'?6f7?"%F+_52RG3d3/#9-Q-=G-}x2#=4`?Ka)m]PHS~FYU3h17z(?wjSY;wJ:+~z3-5w{'
 
-	
-@app.route("/Leaderboard")
-def leaderboard():
-	return render_template("Leaderboard.html")
-	
-@app.route("/Tportal")
-def tportal():
-	return render_template("tportal_login.html")
 
 @app.route("/", methods=["GET", "POST"])
 @app.route("/index", methods=["GET", "POST"])
@@ -42,49 +34,7 @@ def landing_page():
 
 @app.route("/FindClosestBin")
 def find_closest_bin():
-	r = get_tippers_rooms()
-	rooms = []
-	for area in r:
-		if(len(area["region"]["geometry"]) != 0):
-			rooms.append(area["name"])
-	return render_template("FindClosestBin.html", rooms = sorted(rooms), bins = get_sensors(WEIGHT_SENSOR_TYPE))
-	
-@app.route ("/ClosestBin", methods = ['POST'])
-def closest_bin():
-	#closest bin using tportal	
-	location = get_location()
-	#print(location)
-	tippers_room = get_tippers_room(location["payload"]["location"])
-	#print(tippers_room)
-	
-	#comment out the line below to use tportal automatic location
-	# tippers_room = get_tippers_room(request.form['room'])
-	
-	weight_sensors = get_sensors(WEIGHT_SENSOR_TYPE)
-	
-	#set user location
-	coords = tippers_room[0]['region']['geometry']
-	if(len(coords) > 0):
-		user_location = [(coords[0]['x'] + coords[1]['x']) / 2, (coords[0]['y'] + coords[1]['y']) / 2,  coords[0]['z']]
-	else:
-		user_location = [0, 0, 1]
-
-	#calculate and sort closest bins
-	def filter_bins(bin):
-		return (bin["id"][0:4] == "ZBin" and 
-			#get_bin_fullness(bin["id"] + "D") <= .9 and
-			bin["name"][0] == request.form["type"] and int(bin["z"]) == user_location[2])
-	
-	filtered_bins = filter(filter_bins, weight_sensors)
-
-	closest_bins = sorted(filtered_bins, key = lambda bin : (abs(user_location[2] - float(bin["z"])	), 
-									math.sqrt((user_location[0] - float(bin["x"])) ** 2 + (user_location[1] - float(bin["y"])) ** 2)))
-	return render_template("ClosestBin.html", closest_bins = closest_bins, user_location = user_location, 
-							bin_type = request.form["type"], rooms = get_tippers_rooms_by_floor(user_location[2]))
-
-@app.route("/Bins")
-def bins():
-	return render_template("Bins.html")
+	return render_template("FindClosestBin.html")#, rooms = sorted(rooms), bins = get_sensors(WEIGHT_SENSOR_TYPE))
 
 @app.route("/BuildingStats", methods=['GET', 'POST'])
 def building_stats():
@@ -94,12 +44,10 @@ def building_stats():
 		
 	return render_template("BuildingStats.html", type = WEIGHT_SENSOR_TYPE, start_timestamp = start_timestamp, end_timestamp = end_timestamp,
 							interval_days = 0, interval_hours = 1, interval_minutes = 0)
-	
-	
-@app.route("/SelectedBuildingStats", methods = ['POST'])
-def selected_building_stats():
-	return render_template("SelectedBuildingStats.html")
-
+							
+@app.route("/Leaderboard")
+def leaderboard():
+	return render_template("Leaderboard.html")
 	
 @app.route("/TestBin", methods = ['GET', 'POST'])
 def test_bin():
@@ -111,17 +59,6 @@ def test_bin():
 	
 	return render_template("TestBin.html", bin_id = bin_id, type = WEIGHT_SENSOR_TYPE, start_timestamp = start_timestamp, end_timestamp = end_timestamp, 
 	interval_days = 0, interval_hours = 1, interval_minutes = 0)
-
-@app.route("/BinsOnSelectedFloor", methods = ['POST'])
-def bins_on_selected_floor():
-	r = requests.get("http://sensoria.ics.uci.edu:8059/sensor/get?sensor_type_id=6")
-	bins = eval(r.text)
-	floor_bins = []
-	for bin in bins:
-		if bin["z"] == request.form["Floor"] and bin["id"][0:4] == "ZBin":
-			floor_bins.append(bin)
-	print(floor_bins)
-	return render_template("BinsOnSelectedFloor.html", floor = request.form["Floor"], bins = floor_bins)
 	
 	
 	

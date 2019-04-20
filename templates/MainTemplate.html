@@ -45,7 +45,7 @@
 		<script>
 		
 		$(document).ready (function() {
-			if(sessionStorage.getItem("email") === null || sessionStorage.getItem("tipperhost")){
+			if(sessionStorage.getItem("email") === null || sessionStorage.getItem("tipperhost") === null){
 				<!-- window.open("http://tippersweb.ics.uci.edu/tportal/index.html", "_self"); -->
 			}
 		});
@@ -102,12 +102,6 @@
 					<a class="nav-link" href="FindClosestBin">
 						<i class="fas fa-search"></i>
 						<span class="nav-link-text">Waste Guide</span>
-					</a>
-				</li>
-				<li class="nav-item dropdown no-arrow mx-1">
-					<a class="nav-link" href="Bins">
-						<i class="fa fa-trash"></i>
-						<span class="nav-link-text">Bins</span>
 					</a>
 				</li>
 				<li class="nav-item dropdown no-arrow">
