@@ -56,6 +56,44 @@ function get_waste_leaderboard({name_func = {}, start_timestamp = moment().subtr
 //@param waste_type R for recycling, C for compost, L for Landfill
 //@return a name_func object, see top of TippersFormattedData.js for details
 function create_name_func(num_floors, waste_type = "R"){
+	function create_func(waste_type, geometry){
+		return function(sensor){
+			return sensor["name"][0] == waste_type && 
+			geometry[0]["x"] <= parseInt(sensor["x"]) &&
+			parseInt(sensor["x"]) <= geometry[1]["x"] &&
+			geometry[0]["y"] <= parseInt(sensor["y"]) &&
+			parseInt(sensor["y"]) <= geometry[1]["y"] &&
+			parseInt(sensor["z"]) == geometry[0]["z"]
+		};
+	}
+	
+	var content = {};
+	$.ajax({
+		url: "http://sensoria.ics.uci.edu:8059/infrastructure/get?",
+		async: false,
+		dataType: "json",
+		type: "get",
+		success: function(data){
+			console.log(data);
+			var name_func = {};
+			data.forEach(function(d) {
+				if (d["region"]["geometry"].length !== 0) {
+					if (name_func[d["area"]] === undefined) {
+						name_func[d["area"]] = [];
+					}
+					name_func[d["area"]].push(create_func(waste_type, d["region"]["geometry"]));
+				}
+			});
+			content = name_func;
+		}
+	});
+	console.log(content);
+	return content;
+}
+
+////OLD FUNCTION FOR FLOORS
+/*
+function create_name_func(num_floors, waste_type = "R"){
 	function create_func(waste_type, i){
 		return function(sensor){return sensor["name"][0] == waste_type && parseInt(sensor["z"]) == i};
 	}
@@ -65,6 +103,8 @@ function create_name_func(num_floors, waste_type = "R"){
 	}
 	return name_func;
 }
+
+*/
 
 
 //call this whenever updating leaderboard

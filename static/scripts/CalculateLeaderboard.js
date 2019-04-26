@@ -23,6 +23,8 @@ function get_waste_leaderboard({name_func = {}, start_timestamp = moment().subtr
 		//leaderboard data contains the information we want to return
 		var leaderboard_data = {};
 		//we are only interested in "data"
+		console.log("WL Data");
+		console.log(data);
 		data = data["data"];
 		//for each name, we are only interested in the last point
 		//which has the accumulated value of the entire time range
@@ -45,8 +47,10 @@ function get_divergence_leaderboard(start_time=null, end_time=null){
 		
 		return function(data){
 			var divergence = [];
-					
+			console.log("Data");
+			console.log(data);
 			var landfill = data["landfill_obs"];
+			console.log(landfill);
 			var recycling = data["recycling_obs"];
 			var compost = data["compost_obs"];
 			
@@ -71,7 +75,9 @@ function get_divergence_leaderboard(start_time=null, end_time=null){
 	var deferreds = [];
 	var leaderboard = [];
 	for(var floor = 1; floor <= 6; ++floor){
-		deferreds.push(get_chart_data(false, 6, start_time, end_time, 1, 0, [floor]).then(create_callback(floor)))
+		console.log("ssssssssssssss");
+		console.log(deferreds);
+		deferreds.push(get_data(false, 6, start_time, end_time, 1, 0, [floor]).then(create_callback(floor)))
 	}
 	return $.when.apply($, deferreds).then(function(data){
 		console.log(leaderboard)
