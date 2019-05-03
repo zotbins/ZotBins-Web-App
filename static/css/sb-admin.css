@@ -482,3 +482,10 @@ body.sidenav-toggled .navbar-sidenav-tooltip.show {
     /* width: calc(100% - 55px); */
   /* } */
 /* } */
+
+
+#category-dropdown > button{
+    height: 27px;
+    padding: 0 8px;
+    font-size: 0.95rem;
+}

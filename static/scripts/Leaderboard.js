@@ -20,6 +20,7 @@ uses helper functions from CalculateLeaderboard(there isn't much there, maybe ju
 
 
 var waste_type = "R";
+var category_type = "Floor";
 
 leaderboard_json = {
 	"R": ["Top Recyclers", "Amount Recycled (grams)"],
@@ -56,6 +57,62 @@ function get_waste_leaderboard({name_func = {}, start_timestamp = moment().subtr
 //@param waste_type R for recycling, C for compost, L for Landfill
 //@return a name_func object, see top of TippersFormattedData.js for details
 function create_name_func(num_floors, waste_type = "R"){
+	//FLOOR
+	function floor_func(waste_type, i){
+		return function(sensor){return sensor["name"][0] == waste_type && parseInt(sensor["z"]) == i};
+	}
+	//REGION
+	function region_func(waste_type, geometry){
+		return function(sensor){
+			return sensor["name"][0] == waste_type && 
+			geometry[0]["x"] <= parseInt(sensor["x"]) &&
+			parseInt(sensor["x"]) <= geometry[1]["x"] &&
+			geometry[0]["y"] <= parseInt(sensor["y"]) &&
+			parseInt(sensor["y"]) <= geometry[1]["y"] &&
+			parseInt(sensor["z"]) == geometry[0]["z"]
+		};
+	}
+	
+	var name_func = {};
+	$.ajax({
+		url: "http://sensoria.ics.uci.edu:8059/infrastructure/get?",
+		async: false,
+		dataType: "json",
+		type: "get",
+		success: function(data){
+			console.log(data);
+			
+			if (category_type === "Floor") {
+				for(var i = 1; i < num_floors + 1; ++i){
+					name_func["Floor " + i] = floor_func(waste_type, i);
+				}
+			}
+			else if (category_type === "Region") {
+				data.forEach(function(d) {
+					if (d["region"]["geometry"].length !== 0) {
+						if (name_func[d["area"]] === undefined) {
+							name_func[d["area"]] = [];
+						}
+						name_func[d["area"]].push(region_func(waste_type, d["region"]["geometry"]));
+					}
+				});
+			}
+			else if (category_type === "Building") {
+				// TODO: make building thing work
+
+			}
+			else {
+				alert("How did you make it here");
+			}
+		}
+	});
+	console.log(name_func);
+	return name_func;
+}
+
+
+////REGION
+/*
 	function create_func(waste_type, geometry){
 		return function(sensor){
 			return sensor["name"][0] == waste_type && 
@@ -87,9 +144,7 @@ function create_name_func(num_floors, waste_type = "R"){
 			content = name_func;
 		}
 	});
-	console.log(content);
-	return content;
-}
+*/
 
 ////OLD FUNCTION FOR FLOORS
 /*
@@ -133,8 +188,19 @@ function update_leaderboard(){
 	else{
 		get_waste_leaderboard({name_func: create_name_func(6, waste_type)}).then(function(data){
 			//create skeleton of table
+			console.log(category_type);
+			var categoryToggle = `
+				<div class='dropdown' id='category-dropdown'>
+					<button class='btn btn-primary dropdown-toggle' type='button' id='categoryButton' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'> ${ category_type } </button> 
+					<div class='dropdown-menu' aria-labelledby='dropdownMenuButton'> 
+						<a id='floor_select' class='dropdown-item ${ category_type === "Floor" ? "active" : "" }' href='#'>Floor</a> 
+						<a id='region_select' class='dropdown-item ${ category_type === "Region" ? "active" : "" }' href='#'>Region</a> 
+						<a id='building_select' class='dropdown-item ${ category_type === "Building" ? "active" : "" }' href='#'>Building</a>
+					</div>
+				</div>
+			`;
 			$("#public_leaderboard").append("<h2>" + leaderboard_json[waste_type][0] + "</h2>");
-			$("#public_leaderboard").append("<table class='table' id='leaderboard_table'><thead><tr><th>Rank</th><th>Floor</th><th>" 
+			$("#public_leaderboard").append("<table class='table' id='leaderboard_table'><thead><tr><th>Rank</th><th>"+categoryToggle+"</th><th>" 
 											+ leaderboard_json[waste_type][1] + 
 											"</tr></thead></table>");
 			//sort in descending order
@@ -153,11 +219,13 @@ function update_leaderboard(){
 $(document).ready(function(){
 
 	//whenever a dropdown item is clicked generate a new leaderboard
-	$(".dropdown-item").click(function(){
+	$(document).on('click', '.dropdown-item', function() {
 		$(".dropdown-item").removeClass("active")
 		$(this).addClass("active");
-		$("#leaderboardButton").text($(this).text());
+		$(this).closest(".dropdown").find(".dropdown-toggle").text($(this).text());
 		
+	});
+	$(document).on('click', '#leaderboard-dropdown .dropdown-item', function() {
 		$("#public_leaderboard").empty();
 		if($(this).attr("id") == "divergence_select"){
 			waste_type = "D";
@@ -167,6 +235,20 @@ $(document).ready(function(){
 		}
 		else if($(this).attr("id") == "compost_select"){
 			waste_type = "C";
+		}
+		update_leaderboard();
+	});
+	$(document).on('click', '#category-dropdown .dropdown-item', function() {
+		$("#public_leaderboard").empty();
+		
+		if($(this).attr("id") == "floor_select"){
+			category_type = "Floor";
+		}
+		else if($(this).attr("id") == "region_select"){
+			category_type = "Region";
+		}
+		else if($(this).attr("id") == "building_select"){
+			category_type = "Building";
 		}
 		update_leaderboard();
 	});

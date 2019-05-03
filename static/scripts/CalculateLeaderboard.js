@@ -75,8 +75,6 @@ function get_divergence_leaderboard(start_time=null, end_time=null){
 	var deferreds = [];
 	var leaderboard = [];
 	for(var floor = 1; floor <= 6; ++floor){
-		console.log("ssssssssssssss");
-		console.log(deferreds);
 		deferreds.push(get_data(false, 6, start_time, end_time, 1, 0, [floor]).then(create_callback(floor)))
 	}
 	return $.when.apply($, deferreds).then(function(data){
