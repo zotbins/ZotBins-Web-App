@@ -18,6 +18,11 @@ label{
 	font-weight: bold;
 }
 
+#bin{
+	font-size: 24px;
+	font-weight: normal;
+}
+
 #closest_bin_form > *{
 	display: block;
 	margin-bottom: 20px;

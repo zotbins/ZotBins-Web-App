@@ -31,12 +31,12 @@ $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 			
 			<label>Select a bin type</label>
 			<div id="select_bin_type">
-				<label><input type="radio" name="type" value="L"><img src="static/landfill.jpg" alt="landfill"></label>
-				<label><input type="radio" name="type" value="R" checked="checked"><img src="static/recycling.jpg" alt="recycling"></label>
-				<label><input type="radio" name="type" value="C"><img src="static/compost.jpg" alt="compost"></label>
+				<label id="bin"><input type="radio" name="type" value="L"><img src="static/landfill.jpg" alt="landfill">Landfill</label>
+				<label id="bin"><input type="radio" name="type" value="R" checked="checked"><img src="static/recycling.jpg" alt="recycling">Recycle</label>
+				<label id="bin"><input type="radio" name="type" value="C"><img src="static/compost.jpg" alt="compost">Compost</label>
 			</div>
 			
-			<button id="submit" class="btn btn-primary">Find a Bin</button> 
+			<button id="submit" class="btn btn-primary">Find a Bin</button>
 			
 			<!-- <p style="color: red">* waste guide algorithm coming soon! *</p> -->
 		<!-- </form> -->
