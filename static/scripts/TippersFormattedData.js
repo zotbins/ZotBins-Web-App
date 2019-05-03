@@ -46,6 +46,7 @@ var TIPPERS_MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 // @return a thenable object that has data with format
 // {"labels": labels_list, "data": {name1: [list of datapoints], ..., nameN: [list of datapoints]}}  
 function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_type){
+	console.log("name_func")
 	console.log(name_func)
 	//each callback adds the given sensors payload to the appropriate groups
 	//@param sensor the sensor object in the format in the TIPPERS sensor(might not need this)
@@ -77,17 +78,24 @@ function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_t
 	//@param sensor the sensor object in the format in the TIPPERS sensor
 	function get_satisfied_names(sensor){
 		satisfied_names = [];
+		console.log(name_func);
 		for(name in name_func){
-			if(name_func[name](sensor)){
-				satisfied_names.push(name);
+			for (i in name_func[name]) {
+				if(name_func[name][i](sensor)) {
+					satisfied_names.push(name);
+				}
 			}
 		}
 		return satisfied_names;
 	}
 	
+	////////THIS WAS CHANGED FOR REGIONS ^
+	
 	//set up the data object that will be returned
 	data = {};
 	for(name in name_func){
+		console.log("name");
+		console.log(name);
 		data[name] = [];
 		for(interval in labels_list){
 			data[name].push(0);
@@ -105,6 +113,8 @@ function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_t
 	var deferreds = [];
 	var start_timestamp = labels_list[0].format(TIPPERS_MOMENT_FORMAT);
 	var end_timestamp = labels_list[labels_list.length - 1].format(TIPPERS_MOMENT_FORMAT);
+	console.log("sensors");
+	console.log(sensors);
 	for(s in sensors){
 		//get observations for each sensor within the specified floors
 		//need to remove zot-bin-weight-N from TIPPERS
@@ -195,7 +205,7 @@ function get_data({real_time = true, sensor_type = 6, start_timestamp = moment()
 	}
 	// push the last date to make sure we cover the end date
 	labels_list.push(moment(label));
-	
+
 	// get bin data
 	// loop starting from sensors to minimize tippers requests
 	// this way we retrieve observations for each sensor only once
