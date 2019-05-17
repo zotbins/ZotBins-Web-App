@@ -46,8 +46,6 @@ var TIPPERS_MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 // @return a thenable object that has data with format
 // {"labels": labels_list, "data": {name1: [list of datapoints], ..., nameN: [list of datapoints]}}  
 function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_type){
-	console.log("name_func")
-	console.log(name_func)
 	//each callback adds the given sensors payload to the appropriate groups
 	//@param sensor the sensor object in the format in the TIPPERS sensor(might not need this)
 	//@param satisfied_names a list of number representing the group numbers that the sensor satisfies
@@ -78,10 +76,10 @@ function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_t
 	//@param sensor the sensor object in the format in the TIPPERS sensor
 	function get_satisfied_names(sensor){
 		satisfied_names = [];
-		console.log(name_func);
-		for(name in name_func){
-			for (i in name_func[name]) {
-				if(name_func[name][i](sensor)) {
+		//Loops through dictionary whose values are lists of functions
+		for (name in name_func) { //Dict loop
+			for (i in name_func[name]) { //Function list loop
+				if (name_func[name][i](sensor)) { //If function is satisfied
 					satisfied_names.push(name);
 				}
 			}
@@ -89,13 +87,9 @@ function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_t
 		return satisfied_names;
 	}
 	
-	////////THIS WAS CHANGED FOR REGIONS ^
-	
 	//set up the data object that will be returned
 	data = {};
 	for(name in name_func){
-		console.log("name");
-		console.log(name);
 		data[name] = [];
 		for(interval in labels_list){
 			data[name].push(0);
@@ -113,15 +107,13 @@ function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_t
 	var deferreds = [];
 	var start_timestamp = labels_list[0].format(TIPPERS_MOMENT_FORMAT);
 	var end_timestamp = labels_list[labels_list.length - 1].format(TIPPERS_MOMENT_FORMAT);
-	console.log("sensors");
-	console.log(sensors);
 	for(s in sensors){
 		//get observations for each sensor within the specified floors
 		//need to remove zot-bin-weight-N from TIPPERS
 		var sensor = sensors[s];
 		var satisfied_names = get_satisfied_names(sensor);
 		if(satisfied_names.length > 0 &&
-		sensor["id"] != "zot-bin-weight-1" || sensor["id"] != "zot-bin-weight-2"){
+		sensor["id"] != "zot-bin-weight-1" && sensor["id"] != "zot-bin-weight-2"){
 			deferreds.push( $.getJSON(BASE_OBS_URL + "sensor_id=" + sensor["id"] +
 									"&start_timestamp=" + encodeURIComponent(moment(start_timestamp).format(TIPPERS_MOMENT_FORMAT)) +
 									"&end_timestamp=" + encodeURIComponent(moment(end_timestamp).format(TIPPERS_MOMENT_FORMAT)),
@@ -187,7 +179,7 @@ example call: get_interval_data(...).then(function(data){...});
 */
 function get_data({real_time = true, sensor_type = 6, start_timestamp = moment().subtract(1, 'days'),
 					end_timestamp = moment(), interval = 1, name_func = {}} 
-					= {}){console.log(name_func)
+					= {}){
 	// set up labels
 	labels_list = [];
 	var label = start_timestamp;
@@ -195,7 +187,6 @@ function get_data({real_time = true, sensor_type = 6, start_timestamp = moment()
 
 	//set start_timestamp to one interval earlier
 	// moment_start = moment(start_timestamp, displayMomentFormat);
-	label.subtract(interval, 'hours');
 	start_timestamp = label.format('YYYY-MM-DD hh:mm A');
 	
 	// add labels to a labels_list
@@ -203,8 +194,7 @@ function get_data({real_time = true, sensor_type = 6, start_timestamp = moment()
 		labels_list.push(moment(label));
 		label.add(interval, 'hours');
 	}
-	// push the last date to make sure we cover the end date
-	labels_list.push(moment(label));
+	//label_list.push(start_timestamp);
 
 	// get bin data
 	// loop starting from sensors to minimize tippers requests

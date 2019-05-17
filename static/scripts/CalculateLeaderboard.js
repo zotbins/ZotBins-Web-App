@@ -14,7 +14,7 @@ var TIPPERS_MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 //@param name_func an object that has names as indicies and functions as values (see top of TippersFormattedData.js for details)
 //@param start_timestamp moment object
 //@param end_timestamp moment object
-function get_waste_leaderboard({name_func = {}, start_timestamp = moment().subtract(30, 'days'),
+/*function get_waste_leaderboard({name_func = {}, start_timestamp = moment().subtract(30, 'days'),
 					end_timestamp = moment()} 
 					= {}){
 						console.log(30)
@@ -23,8 +23,6 @@ function get_waste_leaderboard({name_func = {}, start_timestamp = moment().subtr
 		//leaderboard data contains the information we want to return
 		var leaderboard_data = {};
 		//we are only interested in "data"
-		console.log("WL Data");
-		console.log(data);
 		data = data["data"];
 		//for each name, we are only interested in the last point
 		//which has the accumulated value of the entire time range
@@ -33,11 +31,7 @@ function get_waste_leaderboard({name_func = {}, start_timestamp = moment().subtr
 		}
 		return leaderboard_data;
 	});
-}
-
-
-
-
+}*/
 
 
 //this function is busted, someone go

@@ -18,9 +18,10 @@ uses helper functions from CalculateLeaderboard(there isn't much there, maybe ju
 */
 
 
-
+//Button variables
 var waste_type = "R";
 var category_type = "Floor";
+var selected_time = "Daily";
 
 leaderboard_json = {
 	"R": ["Top Recyclers", "Amount Recycled (grams)"],
@@ -37,7 +38,6 @@ var TIPPERS_MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 function get_waste_leaderboard({name_func = {}, start_timestamp = moment().subtract(30, 'days'),
 					end_timestamp = moment()} 
 					= {}){
-						console.log(30)
 	return get_data({real_time: false, start_timestamp: start_timestamp, end_timestamp: end_timestamp,
 						interval: 24, name_func: name_func}).then(function(data){
 		//leaderboard data contains the information we want to return
@@ -57,12 +57,14 @@ function get_waste_leaderboard({name_func = {}, start_timestamp = moment().subtr
 //@param waste_type R for recycling, C for compost, L for Landfill
 //@return a name_func object, see top of TippersFormattedData.js for details
 function create_name_func(num_floors, waste_type = "R"){
-	//FLOOR
+	//FLOOR FUNCTION
 	function floor_func(waste_type, i){
+		//Return function that checks waste type and whether sensor location is on floor
 		return function(sensor){return sensor["name"][0] == waste_type && parseInt(sensor["z"]) == i};
 	}
-	//REGION
+	//REGION FUNCTION
 	function region_func(waste_type, geometry){
+		//Return function that checks waste type and whether sensor location is within region geometry
 		return function(sensor){
 			return sensor["name"][0] == waste_type && 
 			geometry[0]["x"] <= parseInt(sensor["x"]) &&
@@ -73,23 +75,25 @@ function create_name_func(num_floors, waste_type = "R"){
 		};
 	}
 	
+	//name_func is a dictionary whose values are lists of functions
 	var name_func = {};
+	//Retrieves json data
 	$.ajax({
 		url: "http://sensoria.ics.uci.edu:8059/infrastructure/get?",
 		async: false,
 		dataType: "json",
 		type: "get",
 		success: function(data){
-			console.log(data);
-			
+			//Creates name_func dict
 			if (category_type === "Floor") {
-				for(var i = 1; i < num_floors + 1; ++i){
-					name_func["Floor " + i] = floor_func(waste_type, i);
+				for (var i = 1; i < num_floors + 1; ++i) {
+					//Each value should be a list of only one function
+					name_func["Floor " + i] = [floor_func(waste_type, i)];
 				}
 			}
 			else if (category_type === "Region") {
 				data.forEach(function(d) {
-					if (d["region"]["geometry"].length !== 0) {
+					if (d["region"]["geometry"].length !== 0) { //Some regions don't have anything in geometry
 						if (name_func[d["area"]] === undefined) {
 							name_func[d["area"]] = [];
 						}
@@ -99,80 +103,47 @@ function create_name_func(num_floors, waste_type = "R"){
 			}
 			else if (category_type === "Building") {
 				// TODO: make building thing work
-
 			}
-			else {
+			else { //shouldn't happen
 				alert("How did you make it here");
 			}
 		}
 	});
-	console.log(name_func);
 	return name_func;
 }
 
 
-////REGION
-/*
-	function create_func(waste_type, geometry){
-		return function(sensor){
-			return sensor["name"][0] == waste_type && 
-			geometry[0]["x"] <= parseInt(sensor["x"]) &&
-			parseInt(sensor["x"]) <= geometry[1]["x"] &&
-			geometry[0]["y"] <= parseInt(sensor["y"]) &&
-			parseInt(sensor["y"]) <= geometry[1]["y"] &&
-			parseInt(sensor["z"]) == geometry[0]["z"]
-		};
+function create_start_timestamp() {
+	//returns appropriate start_timestamp
+	if (selected_time === "Daily") {
+		return moment().subtract(1, 'days');
 	}
-	
-	var content = {};
-	$.ajax({
-		url: "http://sensoria.ics.uci.edu:8059/infrastructure/get?",
-		async: false,
-		dataType: "json",
-		type: "get",
-		success: function(data){
-			console.log(data);
-			var name_func = {};
-			data.forEach(function(d) {
-				if (d["region"]["geometry"].length !== 0) {
-					if (name_func[d["area"]] === undefined) {
-						name_func[d["area"]] = [];
-					}
-					name_func[d["area"]].push(create_func(waste_type, d["region"]["geometry"]));
-				}
-			});
-			content = name_func;
-		}
-	});
-*/
-
-////OLD FUNCTION FOR FLOORS
-/*
-function create_name_func(num_floors, waste_type = "R"){
-	function create_func(waste_type, i){
-		return function(sensor){return sensor["name"][0] == waste_type && parseInt(sensor["z"]) == i};
+	else if (selected_time === "Weekly") {
+		return moment().subtract(1, 'weeks');
 	}
-	name_func = {};
-	for(var i = 1; i < num_floors + 1; ++i){
-		name_func["floor" + i] = create_func(waste_type, i);
+	else if (selected_time === "Monthly") {
+		return moment().subtract(1, 'months');
 	}
-	return name_func;
+	else if (selected_time === "Yearly") {
+		return moment().subtract(1, 'years');
+	}
+	else if (selected_time === "All Time") {
+		return moment.unix(1531443661).utc(); // July 1 2018
+	}
+	else {
+		alert("How did you make it here");
+	}
 }
-
-*/
 
 
 //call this whenever updating leaderboard
 function update_leaderboard(){
 	//divergence leaderboard, this is pretty busted atm somebody gotta fix this
 	if(waste_type == "D"){
-		console.log("D");
 		get_divergence_leaderboard().then(function(data){
 			leaderboard = data;
-			console.log(leaderboard);
 			leaderboard_sorted = leaderboard.sort(function(a,b){return b[1]-a[1]}); //descending order
-			console.log(leaderboard_sorted);
-			
+
 			$("#public_leaderboard").append("<h2>Divergence</h2>");
 			$("#public_leaderboard").append("<table class='table' id='leaderboard_table'><thead><tr><th>Rank</th><th>Floor</th><th>" 
 											+ leaderboard_json[waste_type][1] + 
@@ -186,9 +157,25 @@ function update_leaderboard(){
 	}
 	//recycling/compost leaderboard
 	else{
-		get_waste_leaderboard({name_func: create_name_func(6, waste_type)}).then(function(data){
+		get_waste_leaderboard({start_timestamp: create_start_timestamp(), name_func: create_name_func(6, waste_type)}).then(function(data){
 			//create skeleton of table
-			console.log(category_type);
+			
+			//Title and Interval select menu
+			$("#public_leaderboard").append("<h2>" + leaderboard_json[waste_type][0] + `
+												<div class='dropdown' id='time-dropdown'>
+													<button class='btn btn-primary dropdown-toggle' type='button' id='timeButton' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'> ${ selected_time } </button> 
+													<div class='dropdown-menu' aria-labelledby='dropdownMenuButton'> 
+														<a id='daily_select' class='dropdown-item ${ selected_time === "Daily" ? "active" : "" }' href='#'>Daily</a> 
+														<a id='weekly_select' class='dropdown-item ${ selected_time === "Weekly" ? "active" : "" }' href='#'>Weekly</a> 
+														<a id='monthly_select' class='dropdown-item ${ selected_time === "Monthly" ? "active" : "" }' href='#'>Monthly</a> 
+														<a id='yearly_select' class='dropdown-item ${ selected_time === "Yearly" ? "active" : "" }' href='#'>Yearly</a> 
+														<a id='all_select' class='dropdown-item ${ selected_time === "All Time" ? "active" : "" }' href='#'>All Time</a> 
+													</div>
+												</div>
+											</h2>
+			`);
+			
+			//Category select menu
 			var categoryToggle = `
 				<div class='dropdown' id='category-dropdown'>
 					<button class='btn btn-primary dropdown-toggle' type='button' id='categoryButton' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'> ${ category_type } </button> 
@@ -199,12 +186,14 @@ function update_leaderboard(){
 					</div>
 				</div>
 			`;
-			$("#public_leaderboard").append("<h2>" + leaderboard_json[waste_type][0] + "</h2>");
-			$("#public_leaderboard").append("<table class='table' id='leaderboard_table'><thead><tr><th>Rank</th><th>"+categoryToggle+"</th><th>" 
-											+ leaderboard_json[waste_type][1] + 
-											"</tr></thead></table>");
+			
+			//Table header
+			$("#public_leaderboard").append("<table class='table' id='leaderboard_table'><thead><tr><th>Rank</th><th>"
+											+ categoryToggle + "</th><th>" + leaderboard_json[waste_type][1] + "</tr></thead></table>");
+			
 			//sort in descending order
 			keysSorted = Object.keys(data).sort(function(a,b){return data[b]-data[a]});
+			
 			//input into leaderboard in order
 			for(var i in keysSorted){
 				key = keysSorted[i];
@@ -217,14 +206,13 @@ function update_leaderboard(){
 
 
 $(document).ready(function(){
-
 	//whenever a dropdown item is clicked generate a new leaderboard
 	$(document).on('click', '.dropdown-item', function() {
 		$(".dropdown-item").removeClass("active")
 		$(this).addClass("active");
 		$(this).closest(".dropdown").find(".dropdown-toggle").text($(this).text());
-		
 	});
+	//Leaderboard select menu changey stuff
 	$(document).on('click', '#leaderboard-dropdown .dropdown-item', function() {
 		$("#public_leaderboard").empty();
 		if($(this).attr("id") == "divergence_select"){
@@ -238,6 +226,7 @@ $(document).ready(function(){
 		}
 		update_leaderboard();
 	});
+	//Category select menu changey stuff
 	$(document).on('click', '#category-dropdown .dropdown-item', function() {
 		$("#public_leaderboard").empty();
 		
@@ -249,6 +238,27 @@ $(document).ready(function(){
 		}
 		else if($(this).attr("id") == "building_select"){
 			category_type = "Building";
+		}
+		update_leaderboard();
+	});
+	//Interval select menu changey stuff
+	$(document).on('click', '#time-dropdown .dropdown-item', function() {
+		$("#public_leaderboard").empty();
+		
+		if($(this).attr("id") == "daily_select"){
+			selected_time = "Daily";
+		}
+		else if($(this).attr("id") == "weekly_select"){
+			selected_time = "Weekly";
+		}
+		else if($(this).attr("id") == "monthly_select"){
+			selected_time = "Monthly";
+		}
+		else if($(this).attr("id") == "yearly_select"){
+			selected_time = "Yearly";
+		}
+		else if($(this).attr("id") == "all_select"){
+			selected_time = "All Time";
 		}
 		update_leaderboard();
 	});

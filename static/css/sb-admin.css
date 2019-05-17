@@ -484,8 +484,17 @@ body.sidenav-toggled .navbar-sidenav-tooltip.show {
 /* } */
 
 
-#category-dropdown > button{
-    height: 27px;
+#category-dropdown > button, #time-dropdown > button {
     padding: 0 8px;
     font-size: 0.95rem;
+}
+#category-dropdown > button {
+    height: 27px;
+}
+#time-dropdown {
+	display: inline-block;
+}
+#time-dropdown > button {
+	height: 33px;
+	margin: -12px 0 0 10px;
 }
