@@ -24,6 +24,10 @@ app.secret_key = b'?6f7?"%F+_52RG3d3/#9-Q-=G-}x2#=4`?Ka)m]PHS~FYU3h17z(?wjSY;wJ:
 @app.route("/", methods=["GET", "POST"])
 @app.route("/index", methods=["GET", "POST"])
 def landing_page():
+	#temporary fix
+	session["email"] = "caoj11@uci.edu"
+	session["tippershost"] = "http://sensoria.ics.uci.edu:8059"
+	
 	if request.method == 'POST':
 		session.clear()
 		session["email"] = request.values.get("email")
@@ -66,6 +70,19 @@ def test_bin():
 
 	
 #api calls
+
+@app.route('/get_waste_class', methods=['GET'])
+def watson():
+	img_url = request.args.get("img_url")
+	r = requests.post(url="https://gateway.watsonplatform.net/visual-recognition/api/v3/classify?version=2018-03-19",
+						auth = ('apikey', 'SWzoDRG75SaO1lfRBWaTJmAQ0rFdyIkmf1DwgTV7uENM'),
+						data =
+							{'url': img_url,
+							'classifier_ids': 'waste_classifier_1026837708'
+							}
+					)
+	return jsonify(eval(r.text))
+	
 @app.route('/set_session', methods=['POST'])
 def set_session():
 	if not request.json:

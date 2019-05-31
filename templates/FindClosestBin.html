@@ -17,6 +17,14 @@ $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 {% block content %}
 <div class="row">
 	<div class="col-xl-3">
+	
+		<!-- image recognition stuff -->
+		<input type="file" accept="image/*" capture="camera" id="camera"/>
+		<br>
+		<input type="text" id="img_url"><br>
+		<button type="button" id="watson_submit">submit</button>
+		<p id="watson_output"></p>
+		
 		<h1 id="title">Find the Closest Bin</h1>
 		<!-- <form action = "ClosestBin" method = "POST" id="closest_bin_form"> -->
 			

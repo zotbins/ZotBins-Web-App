@@ -52,16 +52,16 @@ def get_tippers_rooms_by_floor(floor):
 # http://sensoria.ics.uci.edu:8059/infrastructure/get?
 def get_tippers_room(room):
 	parameters = urllib.parse.urlencode([("name", room)])
-	return eval(requests.get(session["tippershost"] + BASE_ROOMS_URL + parameters).text)
+	return eval(requests.get("http://sensoria.ics.uci.edu:8059"  + BASE_ROOMS_URL + parameters).text)
 	
 	
 # @param subject_id the email of the user to get the locaiton of
 # @return http://sensoria.ics.uci.edu:8059/semanticobservation/presence/getLast?type=4&subject_id=dhrubajg@uci.edu&requestor_id=primal@uci.edu&service_id=7
 def get_location():
-	parameters = urllib.parse.urlencode([("type", LOCATION_TYPE), ("subject_id", session["email"]), ("start_timestamp", "2018-07-16 00:00:00"), 
-										("end_timestamp", "2018-07-16 23:00:00"), ("requestor_id", session["email"]), ("service_id", SERVICE_ID)])
+	parameters = urllib.parse.urlencode([("type", LOCATION_TYPE), ("subject_id", "caoj11@uci.edu"), ("start_timestamp", "2018-07-16 00:00:00"), 
+										("end_timestamp", "2018-07-16 23:00:00"), ("requestor_id", "caoj11@uci.edu"), ("service_id", SERVICE_ID)])
 	try:
-		return eval(requests.get(session["tippershost"] + BASE_LOCATIONS_URL + parameters).text)[-1]
+		return eval(requests.get("http://sensoria.ics.uci.edu:8059" + BASE_LOCATIONS_URL + parameters).text)[-1]
 	# if cant find the users location
 	except:
 		return {"payload": {"location": 2065}}
@@ -88,7 +88,6 @@ def get_observation(sensor_id, type, start_time=None, end_time=None):
 	if end_time is None:
 		end_time = getdatetime()
 		
-	# parameters = urllib.parse.urlencode([("sensor_id", sensor_id), ("type", type), ("start_timestamp", start_time), ("end_timestamp", end_time)])
 	parameters = urllib.parse.urlencode([("sensor_id", sensor_id), ("type", 2), ("start_timestamp", start_time), ("end_timestamp", end_time)])
 	observations = eval(requests.get(session["tippershost"] + BASE_OBS_URL + parameters).text)
 	return sorted(observations, key = lambda x : x['timestamp'])

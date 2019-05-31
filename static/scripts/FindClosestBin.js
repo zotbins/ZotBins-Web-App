@@ -56,5 +56,19 @@ $(document).ready(function(){
 			}
 		});
 	});
+	//watson image recognition
+	$("#watson_submit").click(function(){
+		$.ajax({
+			url: $SCRIPT_ROOT + "/get_waste_class",
+			type: "GET",
+			data: {"img_url" : $("#img_url").val()},
+			contentType:"application/json; charset=utf-8",
+			dataType:"json",
+			success: function(data){
+				result = data["images"][0]["classifiers"][0]["classes"][0]
+				$("#watson_output").text("Waste type: " + result["class"] + ", Score: " + result["score"])
+			}
+		});
+	});
 	load_bins();
 });
