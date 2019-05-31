@@ -13,30 +13,7 @@ var BASE_OBS_URL = "http://sensoria.ics.uci.edu:8059/observation/get?";
 
 var TIPPERS_MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 
-//@param name_func an object that has names as indicies and functions as values (see top of TippersFormattedData.js for details)
-//@param start_timestamp moment object
-//@param end_timestamp moment object
-/*function get_waste_leaderboard({name_func = {}, start_timestamp = moment().subtract(30, 'days'),
-					end_timestamp = moment()} 
-					= {}){
-						console.log(30)
-	return get_data({real_time: false, start_timestamp: start_timestamp, end_timestamp: end_timestamp,
-						interval: 24, name_func: name_func}).then(function(data){
-		//leaderboard data contains the information we want to return
-		var leaderboard_data = {};
-		//we are only interested in "data"
-		data = data["data"];
-		//for each name, we are only interested in the last point
-		//which has the accumulated value of the entire time range
-		for(name in data){
-			leaderboard_data[name] = data[name][data[name].length-1];
-		}
-		return leaderboard_data;
-	});
-}*/
-
-
-//this function is busted, someone go
+//I HAVE NOW REPURPOSED THIS FILE FOR DIVERGENCE LEADERBOARD HELPERS
 function get_divergence_leaderboard({start_timestamp = moment().subtract(1, 'days'),
 					end_timestamp = moment()} = {}){
 						
@@ -121,9 +98,7 @@ function get_divergence_leaderboard({start_timestamp = moment().subtract(1, 'day
 		diverted += get_data_from_list(floor_dict[floor_name]["R"]);
 		total += diverted;
 		total += get_data_from_list(floor_dict[floor_name]["L"]);
-		console.log(floor_name)
-		console.log(diverted)
-		console.log(total)
+
 		if (total == 0) {
 			leaderboard.push([floor_name, -1]);
 		}
