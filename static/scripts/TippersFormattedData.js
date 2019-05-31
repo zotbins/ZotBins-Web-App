@@ -187,10 +187,10 @@ function get_data({real_time = true, sensor_type = 6, start_timestamp = moment()
 
 	//set start_timestamp to one interval earlier
 	// moment_start = moment(start_timestamp, displayMomentFormat);
-	start_timestamp = label.format('YYYY-MM-DD hh:mm A');
+	start_timestamp = label.format(TIPPERS_MOMENT_FORMAT);
 	
 	// add labels to a labels_list
-	while(label < end_d){
+	while(label < end_d){ 
 		labels_list.push(moment(label));
 		label.add(interval, 'hours');
 	}

@@ -99,7 +99,7 @@ function update_chart_divergence(){
 			barData.labels.push(data["labels"][label].format('YYYY-MM-DD hh:mm A'));
 		}
 		var divergence = [];
-		
+		console.log(data)
 		var landfill = data["data"]["Landfill"];
 		var recycling = data["data"]["Recycling"];
 		var compost = data["data"]["Compost"];

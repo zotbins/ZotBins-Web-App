@@ -107,7 +107,7 @@ def get_bin_observations():
 	return jsonify(get_bin_chart_data(bin_id, type, start_timestamp, end_timestamp, interval_days, interval_hours, interval_minutes))
 	
 @app.route('/get_building_observations', methods=['GET'])
-def get_building_obseravations():
+def get_building_observations():
 	#HTTP get data
 	type = int(request.args.get("type"))
 	start_timestamp = request.args.get("start_timestamp")
