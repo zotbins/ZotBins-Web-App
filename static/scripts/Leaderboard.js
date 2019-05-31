@@ -60,10 +60,10 @@ function create_name_func(num_floors, waste_type = "R"){
 	//FLOOR FUNCTION
 	function floor_func(waste_type, i){
 		//Return function that checks waste type and whether sensor location is on floor
-		return function(sensor){return sensor["name"][0] == waste_type && parseInt(sensor["z"]) == i};
+		return function(sensor){return sensor["name"].charAt(0) == waste_type && parseInt(sensor["z"]) == i};
 	}
 	//REGION FUNCTION
-	function region_func(waste_type, geometry){
+	function region_func(waste_type, geometry){ 
 		//Return function that checks waste type and whether sensor location is within region geometry
 		return function(sensor){
 			return sensor["name"][0] == waste_type && 
@@ -139,21 +139,20 @@ function create_start_timestamp() {
 //call this whenever updating leaderboard
 function update_leaderboard(){
 	//divergence leaderboard, this is pretty busted atm somebody gotta fix this
-	if(waste_type == "D"){
-		get_divergence_leaderboard().then(function(data){
-			leaderboard = data;
-			leaderboard_sorted = leaderboard.sort(function(a,b){return b[1]-a[1]}); //descending order
+	if (waste_type == "D") {
+		leaderboard = get_divergence_leaderboard({start_timestamp: moment().subtract(1, 'days')}/*create_start_timestamp()*/);
+		
+		leaderboard_sorted = leaderboard.sort(function(a,b){return b[1]-a[1]}); //descending order
 
-			$("#public_leaderboard").append("<h2>Divergence</h2>");
-			$("#public_leaderboard").append("<table class='table' id='leaderboard_table'><thead><tr><th>Rank</th><th>Floor</th><th>" 
-											+ leaderboard_json[waste_type][1] + 
-											"</tr></thead></table>");
-			for(var i in leaderboard_sorted){
-				entry = leaderboard_sorted[i];
-				$("#leaderboard_table").append("<tr><td>" + (Number(i) + 1) + "</td><td>" + entry[0] + "</td><td>" + 
-												entry[1] + "</td></tr>");
-			}
-		});
+		$("#public_leaderboard").append("<h2>Divergence</h2>");
+		$("#public_leaderboard").append("<table class='table' id='leaderboard_table'><thead><tr><th>Rank</th><th>Floor</th><th>" 
+										+ leaderboard_json[waste_type][1] + 
+										"</tr></thead></table>");
+		for(var i in leaderboard_sorted){
+			entry = leaderboard_sorted[i];
+			$("#leaderboard_table").append("<tr><td>" + (Number(i) + 1) + "</td><td>" + entry[0] + "</td><td>" + 
+											entry[1] + "</td></tr>");
+		}
 	}
 	//recycling/compost leaderboard
 	else{
@@ -193,7 +192,6 @@ function update_leaderboard(){
 			
 			//sort in descending order
 			keysSorted = Object.keys(data).sort(function(a,b){return data[b]-data[a]});
-			
 			//input into leaderboard in order
 			for(var i in keysSorted){
 				key = keysSorted[i];

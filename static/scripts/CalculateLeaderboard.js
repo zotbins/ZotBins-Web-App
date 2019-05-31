@@ -8,8 +8,10 @@ turns out most of the rankings can be done through TipperFormattedData.js so the
 we can consider moving everything here to Leaderboard.js and removing this file
 */
 
-var TIPPERS_MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+var BASE_SENSOR_URL = "http://sensoria.ics.uci.edu:8059/sensor/get?";
+var BASE_OBS_URL = "http://sensoria.ics.uci.edu:8059/observation/get?";
 
+var TIPPERS_MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 
 //@param name_func an object that has names as indicies and functions as values (see top of TippersFormattedData.js for details)
 //@param start_timestamp moment object
@@ -35,44 +37,114 @@ var TIPPERS_MOMENT_FORMAT = 'YYYY-MM-DD HH:mm:ss';
 
 
 //this function is busted, someone go
-function get_divergence_leaderboard(start_time=null, end_time=null){
+function get_divergence_leaderboard({start_timestamp = moment().subtract(1, 'days'),
+					end_timestamp = moment()} = {}){
+						
+	var leaderboard = [];
+	var labels_list = [];
+	var label = start_timestamp;
+	var end_d = end_timestamp;
 	
-	function create_callback(floor){
+	start_timestamp = label.format(TIPPERS_MOMENT_FORMAT);
+	
+	while(label < end_d){
+		labels_list.push(moment(label));
+		label.add(24, 'hours');
+	}
+	
+	function get_data_from_list(id_list){
+		var total = 0;
 		
-		return function(data){
-			var divergence = [];
-			console.log("Data");
-			console.log(data);
-			var landfill = data["landfill_obs"];
-			console.log(landfill);
-			var recycling = data["recycling_obs"];
-			var compost = data["compost_obs"];
-			
-			for(var i = 0; i < data["labels"].length; ++i){
-				if(recycling[i] + compost[i] + landfill[i] == 0){
-					divergence.push(100);
+		for (index in id_list) {
+			$.ajax({
+				url: BASE_OBS_URL + "sensor_id=" + id_list[index] +
+					"&start_timestamp=" + encodeURIComponent(moment(start_timestamp).format(TIPPERS_MOMENT_FORMAT)) +
+					"&end_timestamp=" + encodeURIComponent(moment(end_timestamp).format(TIPPERS_MOMENT_FORMAT)),
+				async: false,
+				dataType: "json",
+				type: "get",
+				success: function(observations){
+					for (date in labels_list) {
+						payload = 0;
+						
+						for (o in observations) {
+							var obs = observations[o];
+							
+							if (moment(obs["timestamp"], TIPPERS_MOMENT_FORMAT) > labels_list[date]) {
+								break;
+							}
+							
+							payload = obs["payload"]["weight"];
+						}
+						
+						total += payload;
+					}
 				}
-				else{
-					divergence.push((recycling[i] + compost[i]) / 
-										(recycling[i] + compost[i] + landfill[i]) * 100);
+			});
+		}
+		
+		return total;
+	}
+	
+	floor_dict = {};
+	// {floor_name : {waste_type : [id]} }
+	
+	
+	$.ajax({
+		url: BASE_SENSOR_URL + "sensor_type_id=6",
+		async: false,
+		dataType: "json",
+		type: "get",
+		success: function(sensors){
+			for (index in sensors) {
+				var floor_name = "Floor " + sensors[index]["z"];
+				var waste_type = sensors[index]["name"].charAt(0);
+				
+				if (floor_dict[floor_name] === undefined) {
+					floor_dict[floor_name] = {};
+					floor_dict[floor_name][waste_type] = [];
 				}
+				else if (floor_dict[floor_name][waste_type] === undefined) {
+					floor_dict[floor_name][waste_type] = [];
+				}
+				
+				floor_dict[floor_name][waste_type].push(sensors[index]["id"]);
 			}
-			leaderboard.push([floor, divergence[divergence.length-1]]);
+		}
+	});
+	
+	for (floor_name in floor_dict) {
+		var diverted = 0;
+		var total = 0;
+		
+		diverted += get_data_from_list(floor_dict[floor_name]["C"]);
+		diverted += get_data_from_list(floor_dict[floor_name]["R"]);
+		total += diverted;
+		total += get_data_from_list(floor_dict[floor_name]["L"]);
+		console.log(floor_name)
+		console.log(diverted)
+		console.log(total)
+		if (total == 0) {
+			leaderboard.push([floor_name, -1]);
+		}
+		else {
+			leaderboard.push([floor_name, (diverted/total) * 100]);
 		}
 	}
-	
-	if(start_time === null || end_time === null){
-		start_time = moment().subtract(60, 'days').format(TIPPERS_MOMENT_FORMAT);
-		end_time = moment().format(TIPPERS_MOMENT_FORMAT);
-	}
-	
-	var deferreds = [];
-	var leaderboard = [];
-	for(var floor = 1; floor <= 6; ++floor){
-		deferreds.push(get_data(false, 6, start_time, end_time, 1, 0, [floor]).then(create_callback(floor)))
-	}
-	return $.when.apply($, deferreds).then(function(data){
-		console.log(leaderboard)
-		return leaderboard;
-	});
+
+	return leaderboard;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
