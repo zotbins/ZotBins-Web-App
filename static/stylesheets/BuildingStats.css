@@ -6,3 +6,31 @@
 .interval-input {
 	text-align: center;
 }
+
+.buildingstats-input-group {
+	padding-left: 20px;
+	padding-bottom: 20px;
+}
+
+.chosen-select {
+	width: 50%;
+}
+
+#buildingstats_inputs {
+	padding: 5px;
+}
+
+.input_header {
+	font-weight: bold;
+}
+
+.chosen-container-single .chosen-single {
+	height: 26px;
+	line-height: 26px;
+	font-size: 50%;
+}
+
+#plot_points {
+	display: block;
+	margin: 5px auto 0;
+}

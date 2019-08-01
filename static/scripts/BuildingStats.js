@@ -232,6 +232,17 @@ $(document).ready(function(){
 		plotgraph();
 	});
 	
+	$(function() {
+		$('.chosen-select').chosen({
+			width: "50%",
+		}).change(function(){
+			
+		});
+	});
+	// $(".chosen-select").chosen({width: "95%"}); 
+	// $('.chosen-select').chosen().change(function(){
+	// });
+	
 	//change graph type listeners
 	$('.nav-card').click(function(){
 		$('.active-nav-card').removeClass('active-nav-card');
