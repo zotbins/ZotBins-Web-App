@@ -18,12 +18,7 @@ $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 <div class="row">
 	<div class="col-xl-3">
 	
-		<!-- image recognition stuff -->
-		<input type="file" accept="image/*" capture="camera" id="camera"/>
-		<br>
-		<input type="text" id="img_url"><br>
-		<button type="button" id="watson_submit">submit</button>
-		<p id="watson_output"></p>
+		
 		
 		<h1 id="title">Find the Closest Bin</h1>
 		<!-- <form action = "ClosestBin" method = "POST" id="closest_bin_form"> -->
@@ -35,28 +30,52 @@ $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 					<!-- <option value="{{room}}">{{room}}</option> -->
 				<!-- {% endfor %}	 -->
 			<!-- </select> -->
-
 			
-			<label>Select a bin type</label>
-			<div id="select_bin_type">
-				<label id="bin"><input type="radio" name="type" value="L"><img src="static/landfill.jpg" alt="landfill">Landfill</label>
-				<label id="bin"><input type="radio" name="type" value="R" checked="checked"><img src="static/recycling.jpg" alt="recycling">Recycle</label>
-				<label id="bin"><input type="radio" name="type" value="C"><img src="static/compost.jpg" alt="compost">Compost</label>
-			</div>
-			
-			<button id="submit" class="btn btn-primary">Find a Bin</button>
-			
-			<!-- <p style="color: red">* waste guide algorithm coming soon! *</p> -->
-		<!-- </form> -->
-	</div>
-	<div class="col-xl-9 map-container">
-		<div id="select_floor">
+			<label>Select Location</label>
+			<div id="select_floor">
 			<select name="room" class="chosen-select" id="autocomplete">
 				{% for i in range(1, 7): %}
 					<option value="{{i}}">Floor {{i}}</option>
 				{% endfor %}
 			</select>
-		</div>
+			</div>
+			
+			<label>Select a bin type</label>
+			<div id="select_bin_type">
+				<label id="bin">
+					<input type="checkbox" name="type" value="C">
+					<img src="static/compost.png" alt="compost">
+					<span class="checkmark"></span>
+				Compost</label>
+				<label id="bin">
+					<input type="checkbox" name="type" value="R" checked="checked">
+					<img src="static/recycling.png" alt="recycling">
+					<span class="checkmark"></span>
+				Recycle</label>
+				<label id="bin"><input type="checkbox" name="type" value="L">
+					<img src="static/landfill.png" alt="landfill">
+					<span class="checkmark"></span>
+				Landfill</label>
+			</div>
+			
+			<!--<button id="submit" class="btn btn-primary">Find a Bin</button>-->
+			
+			
+			<!-- image recognition stuff -->
+			<label>Need Help?</label>
+			<input type="file" accept="image/*" capture="camera" id="camera"/>
+			<br>
+			<input type="text" id="img_url"><br>
+			<button type="button" id="watson_submit">submit</button>
+			<p id="watson_output"></p>
+			
+			
+			
+			<!-- <p style="color: red">* waste guide algorithm coming soon! *</p> -->
+		<!-- </form> -->
+	</div>
+	<div class="col-xl-9 map-container">
+		
 		<div id = "map" style = "background : #888888;">
 		</div>
 	</div>

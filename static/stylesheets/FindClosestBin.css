@@ -16,6 +16,7 @@ div.container-fluid *{
 label{
 	font-size: 36px;
 	font-weight: bold;
+	padding-top: 25px;
 }
 
 #bin{
