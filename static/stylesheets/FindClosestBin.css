@@ -1,6 +1,6 @@
 
 div.container-fluid{
-	text-align: center;
+	text-align: left;
 }
 
 div.container-fluid *{
@@ -11,12 +11,15 @@ div.container-fluid *{
 	font-size: 64px;
 	font-weight: bold;
 	padding-bottom: 20px;
+	text-align: center;
+	
 }
 
 label{
 	font-size: 36px;
 	font-weight: bold;
 	padding-top: 25px;
+	text-align: center;
 }
 
 #bin{
@@ -27,6 +30,7 @@ label{
 #closest_bin_form > *{
 	display: block;
 	margin-bottom: 20px;
+	text-align: center;
 }
 
 #closest_bin_form > label > input{
@@ -67,4 +71,9 @@ button#submit{
 
 #select_floor{
 	margin: 20px;
+	text-align: center;
+}
+
+#need_help{
+	text-align: center;
 }

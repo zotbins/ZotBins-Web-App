@@ -33,7 +33,7 @@ function loadNewMap(){
 $(document).ready(function(){
 	$(function() {
 		$('.chosen-select').chosen({
-			width: "20%",
+			width: "80%",
 		}).change(function(){
 			floor = $(this).val()	;
 			loadNewMap();
@@ -52,6 +52,7 @@ $(document).ready(function(){
 			else{
 				floor = closest_bin["z"];
 				found_bin = closest_bin["id"];
+				window.alert("nearest bin found at " + found_bin)
 				loadNewMap();
 			}
 		});

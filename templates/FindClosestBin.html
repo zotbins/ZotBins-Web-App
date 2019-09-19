@@ -16,7 +16,7 @@ $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 
 {% block content %}
 <div class="row">
-	<div class="col-xl-3">
+	<div class="col-xl-4">
 	
 		
 		
@@ -42,40 +42,31 @@ $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 			
 			<label>Select a bin type</label>
 			<div id="select_bin_type">
-				<label id="bin">
-					<input type="checkbox" name="type" value="C">
-					<img src="static/compost.png" alt="compost">
-					<span class="checkmark"></span>
-				Compost</label>
-				<label id="bin">
-					<input type="checkbox" name="type" value="R" checked="checked">
-					<img src="static/recycling.png" alt="recycling">
-					<span class="checkmark"></span>
-				Recycle</label>
-				<label id="bin"><input type="checkbox" name="type" value="L">
-					<img src="static/landfill.png" alt="landfill">
-					<span class="checkmark"></span>
-				Landfill</label>
+				<label id="bin"><input type="radio" name="type" value="C""><img src="static/compost.png" alt="compost">Compost</label>
+				<label id="bin"><input type="radio" name="type" value="R" checked="checked"><img src="static/recycling.png" alt="recycling">Recycle</label>
+				<label id="bin"><input type="radio" name="type" value="L"><img src="static/landfill.png" alt="landfill">Landfill</label>
 			</div>
 			
-			<!--<button id="submit" class="btn btn-primary">Find a Bin</button>-->
+			
+			<div id="need_help"><button id="submit" class="btn btn-primary">Find a Bin</button></div>
 			
 			
 			<!-- image recognition stuff -->
 			<label>Need Help?</label>
-			<input type="file" accept="image/*" capture="camera" id="camera"/>
-			<br>
-			<input type="text" id="img_url"><br>
-			<button type="button" id="watson_submit">submit</button>
-			<p id="watson_output"></p>
+			<div id="need_help">
+				<input type="file" accept="image/*" capture="camera" id="camera"/>
+				<br>
+				<input type="text" id="img_url"><br>
+				<button type="button" id="watson_submit">submit</button>
+				<p id="watson_output"></p>
+			</div>
 			
 			
 			
 			<!-- <p style="color: red">* waste guide algorithm coming soon! *</p> -->
 		<!-- </form> -->
 	</div>
-	<div class="col-xl-9 map-container">
-		
+	<div class="col-xl-6 map-container">
 		<div id = "map" style = "background : #888888;">
 		</div>
 	</div>
