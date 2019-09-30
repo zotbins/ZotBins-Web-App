@@ -203,7 +203,7 @@ function get_data({real_time = true, sensor_type = 6, start_timestamp = moment()
 		// use promises to wait for all api requests before returning
 		var data = get_real_time_data(name_func, sensors, labels_list, real_time, sensor_type);
 		return data;
-	});			
+	});	
 }
 
 

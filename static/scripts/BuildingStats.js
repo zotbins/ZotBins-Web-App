@@ -48,6 +48,8 @@ name_func = {
 				within_location(sensor)}
 }
 
+// @param type 6 for WEIGHT_SENSOR_TYPE, 7 for DIST_SENSOR_TYPE
+// updates weight or fullness chart
 function update_chart_obs(type){
 	if(type == WEIGHT_SENSOR_TYPE){
 		var payload_type = "weight";
@@ -58,14 +60,11 @@ function update_chart_obs(type){
 		options["scales"]["yAxes"][0]["scaleLabel"]["labelString"] = 'Percent Average Fullness';
 	}	
 	get_data({real_time: real_time, start_timestamp: start_timestamp, end_timestamp: end_timestamp,
-						interval: interval, name_func: name_func}).then(function(data){
-		console.log(data);
-		barData.labels = [];
+						name_func: name_func}).then(function(data){
 		for(label in data["labels"]){
 			barData.labels.push(data["labels"][label].format('YYYY-MM-DD hh:mm A'));
 		}
 		
-		barData.datasets = [];
 		var series = data["data"];
 		for(s in series){
 			barData.datasets.push(get_dataset(series[s], s + " " + payload_type, colors[s][0], colors[s][1]));
@@ -74,32 +73,26 @@ function update_chart_obs(type){
 	    chart.update();
 	    $('#plot_points').prop('disabled', false);
 		
-		//update stat table
 		var landfill = data["data"]["Landfill"];
 		var recycling = data["data"]["Recycling"];
 		var compost = data["data"]["Compost"];
-		if(type == DIST_SENSOR_TYPE){
-			update_fullness_table(landfill, recycling, compost, data["labels"][0].format('YYYY-MM-DD hh:mm A'),
-			data["labels"][data["labels"].length-1].format('YYYY-MM-DD hh:mm A'));
-		}
-		else {
-			update_divergence_table(landfill, recycling, compost, data["labels"][0].format('YYYY-MM-DD hh:mm A'),
-			data["labels"][data["labels"].length-1].format('YYYY-MM-DD hh:mm A'));
-		}
+	})
+	.always(function(){
+		end_plot_procedure();
 	});
 }
 
+// @param type 6 for WEIGHT_SENSOR_TYPE, 7 for DIST_SENSOR_TYPE
+// updates divergence chart
 function update_chart_divergence(){
+	options["scales"]["yAxes"][0]["scaleLabel"]["labelString"] = 'Percent Divergence';
 	get_data({real_time: real_time, start_timestamp: start_timestamp, end_timestamp: end_timestamp,
-						interval: interval, name_func: name_func}).then(function(data){
-		options["scales"]["yAxes"][0]["scaleLabel"]["labelString"] = 'Percent Divergence';
+						name_func: name_func}).then(function(data){
 		
-		barData.labels = [];
 		for(label in data["labels"]){
 			barData.labels.push(data["labels"][label].format('YYYY-MM-DD hh:mm A'));
 		}
 		var divergence = [];
-		console.log(data)
 		var landfill = data["data"]["Landfill"];
 		var recycling = data["data"]["Recycling"];
 		var compost = data["data"]["Compost"];
@@ -118,108 +111,43 @@ function update_chart_divergence(){
 		
 	    chart.update();
 	    $('#plot_points').prop('disabled', false);
-		
-		//update stat table
-		if(!real_time){
-			update_divergence_table(landfill, recycling, compost, data["labels"][0].format('YYYY-MM-DD hh:mm A'),
-			data["labels"][data["labels"].length-1].format('YYYY-MM-DD hh:mm A'));
-		}
+	})
+	.always(function(){
+		end_plot_procedure();
 	});
 }
 
-
-function update_divergence_table(landfill, recycling, compost, start_date, end_date){
-	$(".stat-card .card-body").empty();
-	//calculate percentages
-	var acc_total = landfill[landfill.length-1] + recycling[recycling.length-1] + compost[compost.length-1];
-	if(acc_total == 0){
-		var l_percentage = 33.33;
-		var r_percentage = 33.33;
-		var c_percentage = 33.33;
-		var divergence = 100;
-	}
-	else{
-		var l_percentage = landfill[landfill.length - 1] / acc_total * 100;
-		var r_percentage = recycling[recycling.length - 1] / acc_total * 100;
-		var c_percentage = compost[compost.length - 1] / acc_total * 100;
-		var divergence = r_percentage + c_percentage;
-	}
-	
-	// if(real_time){
-		// $(".stat-card .card-body").append("<h3>Start Date: " + start_date + "</h3>");
-		// $(".stat-card .card-body").append("<h3>End Date: " + end_date + "</h3>");
-	// }
-	// else{
-		$(".stat-card .card-body").append("<h3>Date: " + end_date + "</h3>");
-	// }
-	$(".stat-card .card-body").append("<h3>Divergence: " + divergence + "%</h3>");
-	$(".stat-card .card-body").append("<table class='table'><thead><tr></tr></thead></table>");
-	$(".table thead tr").append("<th scope='col'>Waste</th>");
-	$(".table thead tr").append("<th scope='col'>Weight</th>");
-	$(".table thead tr").append("<th scope='col'>% Weight</th>");
-	$(".table").append("<tbody></tbody>");
-	$(".table tbody").append("<tr><th scope='row'>Landfill</th><td>" + landfill[landfill.length-1].toFixed(2) + 
-							"g</td><td>" + l_percentage.toFixed(2) + "%</td></tr>")
-	$(".table tbody").append("<tr><th scope='row'>Recycling</th><td>" + recycling[recycling.length-1].toFixed(2) + 
-							"g</td><td>" + r_percentage.toFixed(2) + "%</td></tr>")
-	$(".table tbody").append("<tr><th scope='row'>Compost</th><td>" + compost[compost.length-1].toFixed(2) + 
-							"g</td><td>" + c_percentage.toFixed(2) + "%</td></tr>")
+// updates the chart and reenables the plot button
+function end_plot_procedure() {
+	chart.update();
+	$('#plot_points').prop('disabled', false);
 }
 
-function update_fullness_table(landfill, recycling, compost, start_date, end_date){
-	$(".stat-card .card-body").empty();
-	//calculate percentages
-	var l_percentage = 0;
-	var r_percentage = 0;
-	var c_percentage = 0;
-	for(i = 0; i < landfill.length; ++i){
-		l_percentage += landfill[i];
-		r_percentage += recycling[i];
-		c_percentage += compost[i];
-	}
-	l_percentage /= landfill.length;
-	r_percentage /= recycling.length;
-	c_percentage /= compost.length;
-	$(".stat-card .card-body").append("<h3>Start Date: " + start_date + "</h3>");
-	$(".stat-card .card-body").append("<h3>End Date: " + end_date + "</h3>");
-	$(".stat-card .card-body").append("<table class='table'><thead><tr></tr></thead></table>");
-	$(".table thead tr").append("<th scope='col'>Waste</th>");
-	$(".table thead tr").append("<th scope='col'>% Average Fullness</th>");
-	$(".table").append("<tbody></tbody>");
-	$(".table tbody").append("<tr><th scope='row'>Landfill</th><td>" + l_percentage.toFixed(2) + "%</td></tr>")
-	$(".table tbody").append("<tr><th scope='row'>Recycling</th><td>" + r_percentage.toFixed(2) + "%</td></tr>")
-	$(".table tbody").append("<tr><th scope='row'>Compost</th><td>" + c_percentage.toFixed(2) + "%</td></tr>")
-}
-
-
+// plots the graph depending on inputs
 function plotgraph(){
 	$('#plot_points').prop('disabled', true);
 	start_timestamp = moment($("#startdatetimepicker > input").val(), DISPLAY_MOMENT_FORMAT);
 	end_timestamp = moment($("#enddatetimepicker > input").val(), DISPLAY_MOMENT_FORMAT);
-	interval = parseFloat($("#hours_input").val());
-	interval += parseFloat($("#days_input").val() * 24);
 	floors = [];
 	$('.floor_check:checked').each(function(){
 		floors.push(Number($(this).val()));
 	});
 	
-	var chart_type_val = $('input[type=radio][name=chart_type]:checked').val();
-	if(chart_type_val == 'real-time'){
-		real_time = true;
-	}
-	else if(chart_type_val == 'accumulated'){
-		real_time = false;
-	}
+	var chart_type_val = $('input[type=radio][name=accumulated_or_realtime]:checked').val();
+	real_time = chart_type_val == 'real-time';
 	
 	options = chart["options"];
 	
-	if($('#weight').hasClass('active-nav-card')){
+	barData.labels = [];
+	barData.datasets = [];
+	var metric = $("input[name=metric]:checked").val();
+	if(metric == 'weight'){
 		update_chart_obs(WEIGHT_SENSOR_TYPE);
 	}	
-	else if($('#fullness').hasClass('active-nav-card')){
+	else if(metric == 'fullness'){
 		update_chart_obs(DIST_SENSOR_TYPE);
 	}
-	else if($('#divergence').hasClass('active-nav-card')){
+	else if(metric == 'divergence'){
 		update_chart_divergence();
 	}
 }
@@ -227,7 +155,6 @@ function plotgraph(){
 
 $(document).ready(function(){
 		
-	//plot data listener
 	$('#plot_points').click(function() {
 		plotgraph();
 	});
@@ -239,17 +166,7 @@ $(document).ready(function(){
 			
 		});
 	});
-	// $(".chosen-select").chosen({width: "95%"}); 
-	// $('.chosen-select').chosen().change(function(){
-	// });
 	
-	//change graph type listeners
-	$('.nav-card').click(function(){
-		$('.active-nav-card').removeClass('active-nav-card');
-		$(this).addClass('active-nav-card');
-	});
-	
-	//datetimepicker
 	$('#startdatetimepicker').datetimepicker({
 		date: start_timestamp,
 		format: 'YYYY-MM-DD hh:mm A',
@@ -261,7 +178,6 @@ $(document).ready(function(){
 		maxDate: end_timestamp
 	});			
 	
-	//nav cards
 	$('#fullness').click(function(){
 		$('#real-time').click();
 		$('#accumulated').attr('disabled', 'disabled');
@@ -270,7 +186,6 @@ $(document).ready(function(){
 		$('#accumulated').removeAttr('disabled');
 	});
 			
-	// set up chart
 	var ctx = document.getElementById("chart");
 	chart = new Chart(ctx, {
 		type: 'line',
