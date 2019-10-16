@@ -61,6 +61,7 @@ function update_chart_obs(type){
 	}	
 	get_data({real_time: real_time, start_timestamp: start_timestamp, end_timestamp: end_timestamp,
 						name_func: name_func}).then(function(data){
+		console.log(data)
 		for(label in data["labels"]){
 			barData.labels.push(data["labels"][label].format('YYYY-MM-DD hh:mm A'));
 		}
@@ -78,6 +79,7 @@ function update_chart_obs(type){
 		var compost = data["data"]["Compost"];
 	})
 	.always(function(){
+		console.log("always")
 		end_plot_procedure();
 	});
 }

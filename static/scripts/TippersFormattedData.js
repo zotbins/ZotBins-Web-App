@@ -52,10 +52,8 @@ function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_t
 	function create_callback(sensor, satisfied_names){
 		return function(observations){
 			for(date in labels_list){
-				// reset payload
 				payload = 0;
 				for(o in observations){
-					// if observation timestmap is greater than the date in the labels list, break out of loop
 					var obs = observations[o];
 					if(moment(obs["timestamp"], TIPPERS_MOMENT_FORMAT) > labels_list[date]){
 						break
@@ -76,7 +74,6 @@ function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_t
 	//@param sensor the sensor object in the format in the TIPPERS sensor
 	function get_satisfied_names(sensor){
 		satisfied_names = [];
-		//Loops through dictionary whose values are lists of functions
 		for (name in name_func) { //Dict loop
 			for (i in name_func[name]) { //Function list loop
 				if (name_func[name][i](sensor)) { //If function is satisfied
@@ -87,7 +84,6 @@ function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_t
 		return satisfied_names;
 	}
 	
-	//set up the data object that will be returned
 	data = {};
 	for(name in name_func){
 		data[name] = [];
@@ -96,19 +92,15 @@ function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_t
 		}
 	}
 	
-	//set up payload_type for TIPPERS querying
 	var payload_type = "weight";
 	if(sensor_type == DIST_SENSOR_TYPE){
 		payload_type = "distance";
 	}
 	
-	//add a deferred call for each sensor 
-	//important to only add sensors that satisfy a group to limit API calls
 	var deferreds = [];
 	var start_timestamp = labels_list[0].format(TIPPERS_MOMENT_FORMAT);
 	var end_timestamp = labels_list[labels_list.length - 1].format(TIPPERS_MOMENT_FORMAT);
 	for(s in sensors){
-		//get observations for each sensor within the specified floors
 		//need to remove zot-bin-weight-N from TIPPERS
 		var sensor = sensors[s];
 		var satisfied_names = get_satisfied_names(sensor);
@@ -121,9 +113,7 @@ function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_t
 		}
 	}
 	
-	//return the thenable object that will contain the labels and data points
 	return $.when.apply($, deferreds).then(function(){	
-		//average out across sensors when doing distance
 		if(sensor_type == DIST_SENSOR_TYPE && sensors.length > 0){
 			for(d in data){
 				var grp = data[d];
@@ -132,7 +122,6 @@ function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_t
 				}
 			}
 		}
-		//accumulate data if needed
 		if(!real_time){
 			data = accumulate_data(data);
 		}
@@ -141,10 +130,10 @@ function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_t
 }
 
 
-//this function takes real_time data and converts it to accumulated data
-//@param data a data object in the following format:
-//{name1 : [data_point1, dp2, ...dpM], name2 : [dp1-M], ... nameN : [dp1-M]}
-//@return data object in the same format but is now accumulated
+// takes real_time data and converts it to accumulated data
+// @param data a data object in the following format:
+// 		{name1 : [data_point1, dp2, ...dpM], name2 : [dp1-M], ... nameN : [dp1-M]}
+// @return data object in the same format but is now accumulated
 function accumulate_data(data){
 	for(name in data){
 		var data_points = data[name];
@@ -180,27 +169,18 @@ example call: get_interval_data(...).then(function(data){...});
 function get_data({real_time = true, sensor_type = 6, start_timestamp = moment().subtract(1, 'days'),
 					end_timestamp = moment(), interval = 1, name_func = {}} 
 					= {}){
-	// set up labels
 	labels_list = [];
 	var label = start_timestamp;
 	var end_d = end_timestamp;
 
-	//set start_timestamp to one interval earlier
-	// moment_start = moment(start_timestamp, displayMomentFormat);
 	start_timestamp = label.format(TIPPERS_MOMENT_FORMAT);
 	
-	// add labels to a labels_list
 	while(label < end_d){ 
 		labels_list.push(moment(label));
 		label.add(interval, 'hours');
 	}
-	//label_list.push(start_timestamp);
-
-	// get bin data
-	// loop starting from sensors to minimize tippers requests
-	// this way we retrieve observations for each sensor only once
-	return $.getJSON( BASE_SENSOR_URL + "sensor_type_id=" + sensor_type).then(function( sensors ) {	
-		// use promises to wait for all api requests before returning
+	
+	return $.getJSON( BASE_SENSOR_URL + "sensor_type_id=" + sensor_type).then(function( sensors ) {
 		var data = get_real_time_data(name_func, sensors, labels_list, real_time, sensor_type);
 		return data;
 	});	
