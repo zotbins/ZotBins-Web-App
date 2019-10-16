@@ -106,10 +106,11 @@ function get_real_time_data(name_func, sensors, labels_list, real_time, sensor_t
 		var satisfied_names = get_satisfied_names(sensor);
 		if(satisfied_names.length > 0 &&
 		sensor["id"] != "zot-bin-weight-1" && sensor["id"] != "zot-bin-weight-2"){
-			deferreds.push( $.getJSON(BASE_OBS_URL + "sensor_id=" + sensor["id"] +
-									"&start_timestamp=" + encodeURIComponent(moment(start_timestamp).format(TIPPERS_MOMENT_FORMAT)) +
-									"&end_timestamp=" + encodeURIComponent(moment(end_timestamp).format(TIPPERS_MOMENT_FORMAT)),
-									create_callback(sensor, satisfied_names)));
+			// deferreds.push( $.getJSON(BASE_OBS_URL + "sensor_id=" + sensor["id"] +
+									// "&start_timestamp=" + encodeURIComponent(moment(start_timestamp).format(TIPPERS_MOMENT_FORMAT)) +
+									// "&end_timestamp=" + encodeURIComponent(moment(end_timestamp).format(TIPPERS_MOMENT_FORMAT)),
+									// create_callback(sensor, satisfied_names)));
+			deferreds.push( get_observation(sensor["id"], start_timestamp, end_timestamp).then(create_callback(sensor, satisfied_names)));
 		}
 	}
 	
@@ -180,7 +181,7 @@ function get_data({real_time = true, sensor_type = 6, start_timestamp = moment()
 		label.add(interval, 'hours');
 	}
 	
-	return $.getJSON( BASE_SENSOR_URL + "sensor_type_id=" + sensor_type).then(function( sensors ) {
+	return get_sensors(sensor_type).then(function( sensors ) {
 		var data = get_real_time_data(name_func, sensors, labels_list, real_time, sensor_type);
 		return data;
 	});	

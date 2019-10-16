@@ -78,11 +78,8 @@ function create_name_func(num_floors, waste_type = "R"){
 	//name_func is a dictionary whose values are lists of functions
 	var name_func = {};
 	//Retrieves json data
-	return $.ajax({
-		url: "http://sensoria.ics.uci.edu:8059/infrastructure/get?",
-		dataType: "json",
-		type: "get"
-	}).then(function(data) {
+	return get_infrastructure().then(function(data) {
+		console.log(data);
 		//Creates name_func dict
 		if (category_type === "Floor") {
 			for (var i = 1; i < num_floors + 1; ++i) {
